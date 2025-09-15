@@ -1,0 +1,105 @@
+:root {
+    --color-bg: #000;
+    --color-surface: #0b1220;
+    --color-text: #fff;
+    --color-muted: #9fb0c8;
+    --color-primary: #1fb6ff;
+    --radius: 6px;
+    --gap: 16px;
+    --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+        Roboto, "Helvetica Neue", Arial;
+    --transition: 200ms ease;
+    --base-font-size: 16px;
+}
+
+/* Reset basics */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-sans);
+    font-size: var(--base-font-size);
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.4;
+    -webkit-text-size-adjust: 100%;
+}
+
+/* Remove default outlines/borders but keep accessible focus for keyboard users */
+:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Form elements base */
+input,
+button,
+textarea,
+select {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: vertical;
+}
+
+/* Buttons */
+button {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    background: var(--color-primary);
+    color: #fff;
+    transition: transform var(--transition), box-shadow var(--transition);
+    border: none;
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+/* Links, images and media */
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+img, svg, picture {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Utility: remove default margins on headings/paragraphs */
+h1,h2,h3,h4,h5,h6,p,ul,ol {
+    margin: 0;
+    padding: 0;
+}
+
+/* Accessible hidden helper */
+.sr-only {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
