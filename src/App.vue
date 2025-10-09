@@ -1,34 +1,49 @@
 <template>
-  <div class="app-container container is-flex is-flex-direction-column" style="min-height:100vh;">
-    <b-navbar >
-      <template #brand>
-        <b-navbar-item>
-          导航栏
-        </b-navbar-item>
-         <b-navbar-item>
-          导航栏
-        </b-navbar-item>
-         <b-navbar-item>
-          导航栏
-        </b-navbar-item>
-      </template>
-    </b-navbar>
-
-    <main style="flex:1; width:100%;">
+  <div class="app-container">
+    <AppNav />
+    <div class="content">
       <router-view />
-    </main>
-
-    <b-footer>
-      <div class="content has-text-centered">底部栏</div>
-    </b-footer>
+    </div>
+    <AppFooter />
   </div>
 </template>
+<script setup>
+</script>
 
-<style scoped>
-.app-container{
+<style scoped lang="scss">
+.app-container {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 100vw;
+  height: 100vh;
+
+  &::after, &::before {
+    content: "";
+    position: absolute;
+    width: 50px;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    z-index: 1;
+  }
+
+  &::after{
+    left: 0;
+    background-image: url('@/assets/images/app-left.png');
+  }
+
+  &::before{
+    right: 0;
+    background-image: url('@/assets/images/app-right.png');
+  }
+  
+  .content {
+    flex: 1;
+    width: 100%;
+    margin: 0;
+  }
 }
 </style>

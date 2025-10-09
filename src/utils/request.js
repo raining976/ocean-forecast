@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const baseURL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE) || '/' 
+const baseURL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) || '/' 
 
 const service = axios.create({
   baseURL,
@@ -29,7 +29,7 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   response => {
-    return response  // 预留处理接口响应的扩展点
+    return response.data  // 预留处理接口响应的扩展点
   },
   error => {
     let message = 'Network Error'

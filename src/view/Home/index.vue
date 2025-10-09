@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import { useTestStore } from '../store'
+import { useTestStore } from '@/store'
 const store = useTestStore()
 const message = store.message
 </script>
