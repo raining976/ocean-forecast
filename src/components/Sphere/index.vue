@@ -12,11 +12,11 @@
             </section>
             <section style="flex:1; margin: 0 10px;">
                 <b-field>
-                    <b-slider @change="sliderChange" v-model="currentIndex" :min="0" :max="fetchedUrls.length || 14"
-                        ticks>
-                        <template v-for="val, index in fetchedUrls.length" :key="val">
+                    <b-slider @change="sliderChange" v-model="currentIndex" :min="0"
+                        :max="props.fetchedUrls.length || 14" ticks>
+                        <template v-for="val, index in props.fetchedUrls.length" :key="val">
                             <!-- TODO:这里可以换成根据不同的类别 显示哪个时间 -->
-                            <b-slider-tick :value="val">{{ sliderHint[index] }}</b-slider-tick>
+                            <b-slider-tick :value="val"> {{ sliderHint[index] }}</b-slider-tick>
                         </template>
                     </b-slider>
                 </b-field>
@@ -28,7 +28,6 @@
 
 <script setup>
 import * as Cesium from 'cesium'
-import { BIcon } from "buefy";
 
 const props = defineProps({
     initialCoords: { type: Array, default: () => [-180, -90, 180, 90] },
@@ -40,7 +39,7 @@ const props = defineProps({
 
 })
 
-const fetchedUrls = computed(() => props.fetchedUrls)
+
 
 
 // 默认图层的贴图
@@ -77,8 +76,9 @@ const stopPlaying = () => {
 const restart = () => {
     stopPlaying()
     currentIndex.value = 0
-    switchToNextImage()
+    switchToNextImage(0)
     startPlaying()
+
 }
 
 
@@ -88,9 +88,9 @@ const switchToNextImage = (targetIndex) => {
     if (targetIndex !== undefined) {
         nextIndex = targetIndex
     } else {
-        nextIndex = (currentIndex.value + 1) % fetchedUrls.value.length
+        nextIndex = (currentIndex.value + 1) % props.fetchedUrls.length
     }
-    const nextLayer = updateToIndex(nextIndex)
+    const nextLayer = updateToIndex(nextIndex % props.fetchedUrls.length)
 
     // 等最新图层的 provider ready 后再移除旧图层，避免闪烁
     const provider = nextLayer && nextLayer.imageryProvider;
@@ -245,9 +245,6 @@ const initCesium = async () => {
     // 即使在追踪模式下，这个设置依然至关重要。
     cameraController.constrainedAxis = Cesium.Cartesian3.UNIT_Z;
 
-
-
-
     imageryLayers.value = viewer.value.imageryLayers
     // 记录默认底图 layer 引用，供后续 ready 等待使用
     try { baseLayer.value = viewer.value.imageryLayers.get(0); } catch (e) { baseLayer.value = null }
@@ -294,8 +291,8 @@ const initCesium = async () => {
 
 // 更新当前图层为目标index图层
 const updateToIndex = (index) => {
-    if (index < 0 || index >= fetchedUrls.value.length) return;
-    const imageUrl = fetchedUrls.value[index];
+    if (index < 0 || index >= props.fetchedUrls.length) return;
+    const imageUrl = props.fetchedUrls[index];
     const layer = imageryLayers.value.addImageryProvider(
         new Cesium.SingleTileImageryProvider({
             url: imageUrl,
@@ -309,8 +306,7 @@ const updateToIndex = (index) => {
 
 // ---------- 控件函数 ------------
 const sliderChange = (v) => {
-    console.log('v', v)
-    if (typeof v !== 'number' || v < 0 || v > fetchedUrls.value.length - 1) return;
+    if (typeof v !== 'number' || v < 0 || v > props.fetchedUrls.length) return;
     if (!props.isPlaying) {
         switchToNextImage(v);
         return
