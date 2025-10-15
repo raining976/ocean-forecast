@@ -3,19 +3,28 @@ import path from 'path'
 import vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-import cesium from 'vite-plugin-cesium'
-import { viteStaticCopy } from 'vite-plugin-static-copy';
+
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/seaice/',
+  build: {
+    rollupOptions: {
+      output: {
+        sanitizeFileName: (name) => {
+          const sanitized = name.replace(/[^a-zA-Z0-9_.-]/g, '_')
+          return sanitized.startsWith('_') ? `file${sanitized}` : sanitized
+        }
+      }
+    }
+  },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src')
+      '@': path.resolve(__dirname, 'src'),
     }
   },
   plugins: [
     vue(),
-    cesium(),
     AutoImport({
       // 自动导入的库
       imports: [
@@ -42,32 +51,12 @@ export default defineConfig({
       // 自定义解析器不需要，默认解析 .vue 的 export default
       dts: 'src/components.d.ts'
     }),
-    viteStaticCopy({
-      targets: [
-        {
-          src: 'node_modules/cesium/Build/Cesium/Workers',
-          dest: 'cesium/Workers'
-        },
-        {
-          src: 'node_modules/cesium/Build/Cesium/ThirdParty',
-          dest: 'cesium/ThirdParty'
-        },
-        {
-          src: 'node_modules/cesium/Build/Cesium/Assets',
-          dest: 'cesium/Assets'
-        },
-        {
-          src: 'node_modules/cesium/Build/Cesium/Widgets',
-          dest: 'cesium/Widgets'
-        }
-      ]
-    })
   ],
   server: {
     port: 3000
   },
-   define: {
+  define: {
     // 2. 定义 CESIUM_BASE_URL
-    CESIUM_BASE_URL: JSON.stringify('/cesium/')
+
   }
 })

@@ -2,20 +2,17 @@
     <div class="cesiumComponentContainer">
         <div id="cesiumContainer"></div>
         <div class="controllerContainer ">
-            <section>
-                <div class="playAndPause">
-                    <vue-fontawesome @click="$emit('handlePlay')" icon="circle-play" class="has-text-white" size="lg"
-                        v-show="!isPlaying" />
-                    <vue-fontawesome @click="$emit('handlePause')" icon="circle-pause" class="has-text-white" size="lg"
-                        v-show="isPlaying" />
-                </div>
-            </section>
+            <div class="playAndPause">
+                <vue-fontawesome @click="$emit('handlePlay')" icon="circle-play" class="has-text-white" size="lg"
+                    v-show="!isPlaying" />
+                <vue-fontawesome @click="$emit('handlePause')" icon="circle-pause" class="has-text-white" size="lg"
+                    v-show="isPlaying" />
+            </div>
             <section style="flex:1; margin: 0 10px;">
                 <b-field>
                     <b-slider @change="sliderChange" v-model="currentIndex" :min="0"
                         :max="props.fetchedUrls.length || 14" ticks>
                         <template v-for="val, index in props.fetchedUrls.length" :key="val">
-                            <!-- TODO:这里可以换成根据不同的类别 显示哪个时间 -->
                             <b-slider-tick :value="val"> {{ sliderHint[index] }}</b-slider-tick>
                         </template>
                     </b-slider>
@@ -27,7 +24,11 @@
 </template>
 
 <script setup>
-import * as Cesium from 'cesium'
+// import * as Cesium from 'cesium'
+let Cesium = window.Cesium
+
+import { useRTForecastStore } from '@/store'
+const rtForecastStore = useRTForecastStore();
 
 const props = defineProps({
     initialCoords: { type: Array, default: () => [-180, -90, 180, 90] },
@@ -134,8 +135,6 @@ const initFirstLayer = () => {
     currentIndex.value = 0
     currentLayer.value = updateToIndex(currentIndex.value)
 
-    // 设置定时器来循环播放动画
-    startPlaying()
 }
 
 
@@ -211,7 +210,29 @@ const initCesium = async () => {
         creditContainer: _creditEl
     })
 
+    imageryLayers.value = viewer.value.imageryLayers
 
+    // 监听瓦片加载
+    const tileLoadListener = viewer.value.scene.globe.tileLoadProgressEvent.addEventListener(function (pendingRequests) {
+        if (pendingRequests === 0) {
+            // 瓦片加载完成！现在我们等待这一帧被画出来
+
+            // 使用 requestAnimationFrame 等待下一次绘制
+            requestAnimationFrame(function () {
+                // 在这里，我们可以非常有信心地说：
+                // 1. 所有瓦片数据已加载。
+                // 2. 包含这些清晰瓦片的帧已经被绘制到了屏幕上。
+                rtForecastStore.isLoading = false; // 隐藏加载动画
+                // 开始播放
+                startPlaying()
+
+
+            });
+
+            // 别忘了移除监听器
+            tileLoadListener();
+        }
+    });
 
     // 在北极点创建一个不可见的实体作为我们的“锚点”
     const northPoleEntity = viewer.value.entities.add({
@@ -233,19 +254,21 @@ const initCesium = async () => {
     // (a) 禁用倾斜(Tilt)功能。
     // 这样用户（例如通过按住中键或Ctrl+左键拖动）就无法改变相机的俯仰角，
     // 从而保持一个稳定的、类似2D地图的上帝视角。
-    cameraController.enableTilt = false;
+    cameraController.enableTilt = true;
 
     // (b) 滚轮只用于缩放 (Zoom)。这是默认行为，我们确保它开启。
     cameraController.enableZoom = true;
 
     // (c) 鼠标拖动用于旋转 (Rotate)。这也是默认行为，我们确保它开启。
-    cameraController.enableRotate = false;
+    cameraController.enableRotate = true;
+
+
 
     // (d) [关键] 再次应用约束轴，从根本上解决滚轮缩放时在极点产生的旋转问题。
     // 即使在追踪模式下，这个设置依然至关重要。
     cameraController.constrainedAxis = Cesium.Cartesian3.UNIT_Z;
 
-    imageryLayers.value = viewer.value.imageryLayers
+
     // 记录默认底图 layer 引用，供后续 ready 等待使用
     try { baseLayer.value = viewer.value.imageryLayers.get(0); } catch (e) { baseLayer.value = null }
 
@@ -268,7 +291,7 @@ const initCesium = async () => {
             },
             duration: 2.0,
             easingFunction: Cesium.EasingFunction.QUADRATIC_IN_OUT
-        });
+        })
     } catch (e) {
         // ignore
     }
@@ -278,9 +301,6 @@ const initCesium = async () => {
         const baseProvider = baseLayer.value && baseLayer.value.imageryProvider;
 
         waitForReadyWithTimeout(baseProvider, 5000).then(() => {
-            initFirstLayer()
-        }).catch((err) => {
-            console.warn('base provider not ready, still calling initFirstLayer as fallback', err)
             initFirstLayer()
         })
     } catch (e) {
@@ -293,12 +313,18 @@ const initCesium = async () => {
 const updateToIndex = (index) => {
     if (index < 0 || index >= props.fetchedUrls.length) return;
     const imageUrl = props.fetchedUrls[index];
-    const layer = imageryLayers.value.addImageryProvider(
-        new Cesium.SingleTileImageryProvider({
-            url: imageUrl,
-            rectangle: Cesium.Rectangle.fromDegrees(-180.0, -90.0, 180.0, 90.0)
-        })
-    );
+    let layer;
+    try {
+        layer = imageryLayers.value.addImageryProvider(
+            new Cesium.SingleTileImageryProvider({
+                url: imageUrl,
+                rectangle: Cesium.Rectangle.fromDegrees(-180.0, -90.0, 180.0, 90.0)
+            })
+        );
+    } catch (e) {
+        console.warn('addImageryProvider error', e)
+    }
+
 
     return layer;
 }
@@ -323,7 +349,7 @@ watch(() => props.isPlaying, (newVal) => {
     } else {
         stopPlaying()
     }
-}, { immediate: true })
+})
 
 import { next12Months, next14Days } from '@/utils/dateUtils'
 // 根据daily or monthly 切换slider下方提示

@@ -1,24 +1,22 @@
 <template>
-    <div class="realTimeForecastContainer">
-        <b-section class="switcherSection">
-            <b-tabs type="is-toggle" size="is-small" v-model="rtForecastStore.dateType">
-                <b-tab-item label="未来14日" value="daily"></b-tab-item>
-                <b-tab-item label="未来12月" value="monthly"></b-tab-item>
-            </b-tabs>
-        </b-section>
-        <!-- 球 -->
-        <Sphere :date-type="rtForecastStore.dateType" :fetched-urls="curImagesUrl" @handlePlay="rtForecastStore.play"
-            @handlePause="rtForecastStore.pause" :is-playing="rtForecastStore.isPlaying" ref="sphereRef" />
-        <!-- /球 -->
-        <!-- 加载动画 -->
-        <b-loading :is-full-page="false" v-model="isLoading" :can-cancel="true"></b-loading>
-        <!-- /加载动画 -->
-    </div>
+  <div class="realTimeForecastContainer">
+    <b-section class="switcherSection">
+      <b-tabs type="is-toggle" size="is-small" v-model="rtForecastStore.dateType">
+        <b-tab-item label="未来14日" value="daily"></b-tab-item>
+        <b-tab-item label="未来12月" value="monthly"></b-tab-item>
+      </b-tabs>
+    </b-section>
+    <!-- 球 -->
+    <Sphere :date-type="rtForecastStore.dateType" :fetched-urls="curImagesUrl" @handlePlay="rtForecastStore.play"
+      @handlePause="rtForecastStore.pause" :is-playing="rtForecastStore.isPlaying" ref="sphereRef" />
+    <!-- /球 -->
+
+  </div>
 </template>
 <script setup>
 import { get_monthly_real_time_forecast, get_daily_real_time_forecast } from '@/api'
 import { useRTForecastStore } from '@/store'
-import { watch, ref, onMounted, onUnmounted } from 'vue';
+import { watch, ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { createImagePreloader } from '@/utils/imagePreloader'
 
 const rtForecastStore = useRTForecastStore();
@@ -30,7 +28,7 @@ const fetchedDailyUrls = ref([])
 const fetchedMonthlyUrls = ref([])
 
 // 加载动画开关
-const isLoading = ref(true)
+// const isLoading = ref(true)
 
 // 预加载器实例
 let dailyPreloader = null
@@ -91,12 +89,15 @@ watch(() => rtForecastStore.dateType, async (newVal) => {
   } else {
     curImagesUrl.value = fetchedMonthlyUrls.value;
   }
-  sphereRef.value && sphereRef.value.restart(); // 重置球的状态
+  nextTick().then(() => {
+      sphereRef.value && sphereRef.value.restart(); // 重置球的状态
+
+  });
 });
 
 
 onMounted(async () => {
-  isLoading.value = true;
+  rtForecastStore.isLoading = true;
   // 并行发起两个请求，但我们会等待 daily 的初始批完成以供首屏渲染
   await Promise.allSettled([getDailyImages(), getMonthlyImages()]);
 
@@ -110,54 +111,58 @@ onMounted(async () => {
     try { sphereRef.value.initCesium(); } catch (e) { console.warn('initCesium failed', e); }
   }
 
-  isLoading.value = false;
 })
 
 onUnmounted(() => {
   if (sphereRef.value) {
     sphereRef.value = null
   }
-});
+  if (dailyPreloader) {
+    dailyPreloader.cancelAll()
+    dailyPreloader = null
+  }
 
+
+});
 </script>
 
 
 <style scoped lang="scss">
 .realTimeForecastContainer {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    // margin-top: -25px;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  // margin-top: -25px;
 
-    .switcherSection {
-        position: absolute;
-        top: 0;
-        left: 10%;
-        z-index: 2;
+  .switcherSection {
+    position: absolute;
+    top: 0;
+    left: 10%;
+    z-index: 2;
 
-        &:deep(.tabs.is-toggle a) {
-            color: #fff
-        }
-
-        &:deep(.tabs.is-toggle li + li) {
-            overflow: hidden;
-        }
-
-        &:deep(.tabs.is-toggle li.is-active a) {
-            background-color: var(--color-primary);
-            text-align: center;
-            border-color: #fff;
-            color: #fff;
-            overflow: hidden;
-
-        }
-
-        &:deep(.tabs.is-toggle li a:hover) {
-            background-color: var(--color-primary-light);
-            border-color: #fff;
-
-            color: #fff;
-        }
+    &:deep(.tabs.is-toggle a) {
+      color: #fff
     }
+
+    &:deep(.tabs.is-toggle li + li) {
+      overflow: hidden;
+    }
+
+    &:deep(.tabs.is-toggle li.is-active a) {
+      background-color: var(--color-primary);
+      text-align: center;
+      border-color: #fff;
+      color: #fff;
+      overflow: hidden;
+
+    }
+
+    &:deep(.tabs.is-toggle li a:hover) {
+      background-color: var(--color-primary-light);
+      border-color: #fff;
+
+      color: #fff;
+    }
+  }
 }
 </style>

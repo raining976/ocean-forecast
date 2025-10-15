@@ -3,11 +3,18 @@
     <AppNav />
     <div class="content">
       <router-view />
+      <!-- 加载动画 -->
+      <b-loading :is-full-page="false" v-model="rtForecastStore.isLoading" :can-cancel="true"></b-loading>
+      <!-- /加载动画 -->
     </div>
     <AppFooter />
+
   </div>
 </template>
 <script setup>
+import { useRTForecastStore } from '@/store'
+const rtForecastStore = useRTForecastStore();
+
 </script>
 
 <style scoped lang="scss">
@@ -20,7 +27,8 @@
   width: 100vw;
   height: 100vh;
 
-  &::after, &::before {
+  &::after,
+  &::before {
     content: "";
     position: absolute;
     width: 50px;
@@ -30,16 +38,16 @@
     z-index: 1;
   }
 
-  &::after{
+  &::after {
     left: 0;
     background-image: url('@/assets/images/app-left.png');
   }
 
-  &::before{
+  &::before {
     right: 0;
     background-image: url('@/assets/images/app-right.png');
   }
-  
+
   .content {
     flex: 1;
     width: 100%;

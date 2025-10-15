@@ -19,8 +19,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 library.add(faCirclePause, faEarthAmericas,faCirclePlay);
 
 
-// 导入 Cesium 样式
-import 'cesium/Build/Cesium/Widgets/widgets.css';
+
 
 const pinia = createPinia()
 const app = createApp(App)

@@ -3,7 +3,8 @@ export const useRTForecastStore = defineStore('realTimeForecastState', () => {
     const DAILY = 'daily'
     const MONTHLY = 'monthly'
     const dateType = ref(DAILY) // daily or monthly
-    
+
+    const isLoading = ref(false);
     const play = () => {
         isPlaying.value = true
     }
@@ -12,5 +13,5 @@ export const useRTForecastStore = defineStore('realTimeForecastState', () => {
         isPlaying.value = false
     }
 
-    return { isPlaying, play, pause, dateType, DAILY, MONTHLY }
+    return { isPlaying, play, pause, dateType, DAILY, MONTHLY, isLoading }
 })
