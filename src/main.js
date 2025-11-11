@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import './style/global.css'
 import App from './App.vue'
 import router from './router'
@@ -12,16 +13,18 @@ import 'buefy/dist/css/buefy.css'
 
 // 导入 Font Awesome 的核心部分
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faCirclePause, faEarthAmericas,faCirclePlay} from '@fortawesome/free-solid-svg-icons'; // <-- 按需导入您想使用的图标
+import { faCirclePause, faEarthAmericas, faCirclePlay, faAngleLeft, faAngleRight, faChevronUp, faChevronDown, faPlus, faMinus, faCircleExclamation, faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons'; // <-- 按需导入您想使用的图标
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 // 这是 SVG Core 的工作方式：必须显式添加图标，这样最终打包时只会包含用到的图标
-library.add(faCirclePause, faEarthAmericas,faCirclePlay);
+library.add(faCirclePause, faEarthAmericas, faCirclePlay, faAngleLeft, faAngleRight, faChevronUp, faChevronDown, faPlus, faMinus, faCircleExclamation, faEye, faEyeSlash);
 
 
 
 
 const pinia = createPinia()
+// 使用 pinia 持久化插件
+pinia.use(piniaPluginPersistedstate)
 const app = createApp(App)
 
 // 注册全局组件

@@ -25,7 +25,8 @@ const rtForecastStore = useRTForecastStore();
   justify-content: center;
   align-items: center;
   width: 100vw;
-  height: 100vh;
+  background-color: #000;
+  min-height: 100vh;
 
   &::after,
   &::before {
@@ -50,6 +51,9 @@ const rtForecastStore = useRTForecastStore();
 
   .content {
     flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     margin: 0;
   }
