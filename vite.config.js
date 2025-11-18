@@ -3,11 +3,15 @@ import path from 'path'
 import vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
+import cesium from 'vite-plugin-cesium'
 
 
 // https://vite.dev/config/
 export default defineConfig({
   base: '/seaice/',
+  esbuild:{
+    drop:['console','debugger']
+  },
   build: {
     rollupOptions: {
       output: {
@@ -16,7 +20,7 @@ export default defineConfig({
           return sanitized.startsWith('_') ? `file${sanitized}` : sanitized
         }
       }
-    }
+    },
   },
   resolve: {
     alias: {
@@ -24,6 +28,7 @@ export default defineConfig({
     }
   },
   plugins: [
+    cesium(),
     vue(),
     AutoImport({
       // 自动导入的库

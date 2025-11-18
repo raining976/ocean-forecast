@@ -24,8 +24,7 @@
 </template>
 
 <script setup>
-// import * as Cesium from 'cesium'
-let Cesium = window.Cesium
+import * as Cesium from 'cesium'
 
 import { useRTForecastStore } from '@/store'
 const rtForecastStore = useRTForecastStore();
