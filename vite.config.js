@@ -3,14 +3,13 @@ import path from 'path'
 import vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-import cesium from 'vite-plugin-cesium'
 
 
 // https://vite.dev/config/
 export default defineConfig({
   base: '/seaice/',
-  esbuild:{
-    drop:['console','debugger']
+  esbuild: {
+    drop: ['console', 'debugger']
   },
   build: {
     rollupOptions: {
@@ -28,7 +27,6 @@ export default defineConfig({
     }
   },
   plugins: [
-    cesium(),
     vue(),
     AutoImport({
       // 自动导入的库
@@ -60,8 +58,4 @@ export default defineConfig({
   server: {
     port: 3000
   },
-  define: {
-    // 2. 定义 CESIUM_BASE_URL
-
-  }
 })

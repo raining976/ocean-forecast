@@ -5,10 +5,6 @@ import './style/global.css'
 import App from './App.vue'
 import router from './router'
 
-// 导入 Cesium
-import 'cesium/Build/Cesium/Widgets/widgets.css'
-import * as Cesium from 'cesium'
-
 // 导入 Buefy 和 Bulma 样式
 import Buefy from 'buefy'
 import 'bulma/css/bulma.css'
