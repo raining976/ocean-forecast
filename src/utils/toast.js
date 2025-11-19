@@ -20,3 +20,12 @@ export const successToast = (msg) => {
     })
 }
 
+export const errorToast = (msg) => {
+    toast.open({
+        message: msg,
+        type: 'is-danger',
+        duration: 2000,
+        queue: true
+    })
+}
+

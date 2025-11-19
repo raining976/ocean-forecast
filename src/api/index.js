@@ -29,7 +29,7 @@ export const post_model_interpreter_data = (params) => post('/api/model/interpre
 export async function useModelInterpreter(formData) {
     try {
         const { start_time, end_time, pred_gap, grad_type, position, variable } = formData;
-         
+
         const params = {
             start_time,
             end_time,
@@ -63,5 +63,127 @@ export async function get_model_interpreter_result(task_id) {
 }
 
 
+/**
+ * 上传文件接口
+ * 单个文件上传
+ */
+export const upload_pngs = async (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await post('/api/upload/image', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+    return res.data.image_url
+}
+
+
+/**
+ * 上传多个文件接口 
+ * @param {*} files  文件列表
+ * @returns 
+ */
+export const upload_multiple_pngs = (files) => {
+    const promises = []
+    files.forEach(file => {
+        promises.push(upload_pngs(file))
+    })
+    return Promise.all(promises)
+}
+
+
+/**
+ * 提交逐日的预报分析
+ */
+export async function postDayPrediction(startDate, imagePaths) {
+    try {
+        const response = await post('/api/predict/day', {
+            start_date: startDate,
+            image_paths: imagePaths
+        })
+
+        return response
+    } catch (error) {
+        console.error('Error fetching day predictions:', error)
+        throw error
+    }
+}
+
+/**
+ * 提交逐月的预报分析
+ */
+export async function postMonthPrediction(startDate, imagePaths) {
+    try {
+        const response = await post('/api/predict/month', {
+            start_date: startDate,
+            image_paths: imagePaths
+        })
+
+        return response
+    } catch (error) {
+        console.error('Error fetching month predictions:', error)
+        throw error
+    }
+}
+
+
+/**
+ * 获取逐日预报的结果
+ */
+export async function getDayPredictionResult(taskId) {
+    try {
+        const response = await get(`/api/predict/day/${taskId}`)
+        return response
+    } catch (error) {
+        console.error('Error fetching day prediction result:', error)
+        throw error
+    }
+}
+
+/**
+ * 获取逐月预报的结果
+ */
+export async function getMonthPredictionResult(taskId) {
+    try {
+        const response = await get(`/api/predict/month/${taskId}`)
+        return response
+    } catch (error) {
+        console.error('Error fetching month prediction result:', error)
+        throw error
+    }
+}
+
+
+/**
+ * 提交预报测试请求
+ */
+
+export async function postPrediction(type, startDate, imagePaths) {
+    if (type === 'daily') {
+        return await postDayPrediction(startDate, imagePaths);
+    } else if (type === 'monthly') {
+        return await postMonthPrediction(startDate, imagePaths);
+    } else {
+        throw new Error('Invalid prediction type');
+    }
+}
+
+/**
+ * 获取预报测试结果
+ */
+export async function getPredictionResult(taskId, type) {
+    let res
+    if (type === 'daily') {
+        res = await getDayPredictionResult(taskId);
+        return res
+    } else if (type === 'monthly') {
+        res = await getMonthPredictionResult(taskId);
+        return res
+    }
+    else {
+        throw new Error('Invalid prediction type');
+    }
+}
 
 

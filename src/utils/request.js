@@ -1,6 +1,6 @@
 import axios from 'axios'
-
-const baseURL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) || '/' 
+import { errorToast } from '@/utils/toast'
+const baseURL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL) || '/'
 
 const service = axios.create({
   baseURL,
@@ -57,9 +57,9 @@ service.interceptors.response.use(
     } else if (error.message) {
       message = error.message
     }
-    const err = new Error(message)
-    err.original = error
-    return Promise.reject(err)
+    errorToast(message)
+    console.error('response error:', error)
+    return Promise.reject(error)
   }
 )
 

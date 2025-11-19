@@ -147,7 +147,7 @@ const selectableVariable = [
     }
 ]
 
-const imgUrl = 'images/arctic_mask.webp'
+const imgUrl = new URL('@/assets/images/arctic_mask.webp', import.meta.url).href
 
 
 // 根据select修改form.variable值
@@ -205,7 +205,6 @@ const rangeEnd = (value) => {
 // 处理选区字符串事件
 const onSelection = (selection) => {
     form.position = `${selection.bl.y},${selection.bl.x};${selection.tl.y},${selection.tl.x};${selection.br.y},${selection.br.x};${selection.tr.y},${selection.tr.x}`;
-    console.log('form.position', form.position)
 }
 
 // 提交表单
