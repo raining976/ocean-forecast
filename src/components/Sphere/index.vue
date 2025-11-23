@@ -174,8 +174,7 @@ const waitForReadyWithTimeout = (p, timeout = 5000) => {
 // 包括创建实例，贴默认图，定位
 const initCesium = async () => {
     // 在cesium申请的token
-    Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_TOKEN
-
+    Cesium.Ion.defaultAccessToken = undefined
 
     const provider = new Cesium.SingleTileImageryProvider({
         url: defaultImageUrl,
@@ -197,7 +196,9 @@ const initCesium = async () => {
     }
 
     viewer.value = new Cesium.Viewer('cesiumContainer', {
-        terrainProvider: Cesium.createWorldTerrain(),
+        // Use a local ellipsoid terrain provider to avoid automatic requests
+        // to Cesium Ion (https://assets.ion.cesium.com/...)
+        terrainProvider: new Cesium.EllipsoidTerrainProvider(),
         timeline: false,
         animation: false,
         geocoder: false,
