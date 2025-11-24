@@ -29,7 +29,12 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   response => {
-    return response.data  // 预留处理接口响应的扩展点
+    if (response.success) {
+      return response.data  // 预留处理接口响应的扩展点
+    } else {
+      errorToast(response.message || '请求失败')
+      return Promise.reject(new Error(response.message || '请求失败'))
+    }
   },
   error => {
     let message = 'Network Error'
