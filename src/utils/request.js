@@ -29,11 +29,11 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   response => {
-    if (response.success) {
+    if (response.data.success) {
       return response.data  // 预留处理接口响应的扩展点
     } else {
-      errorToast(response.message || '请求失败')
-      return Promise.reject(new Error(response.message || '请求失败'))
+      errorToast(response.data.message || '请求失败')
+      return Promise.reject(new Error(response.data.message || '请求失败'))
     }
   },
   error => {
