@@ -11,15 +11,15 @@
             <p>左下: ({{ bottomLeft.x }}, {{ bottomLeft.y }})</p>
             <p>右下: ({{ bottomRight.x }}, {{ bottomRight.y }})</p> -->
             <b-button @click="clearSelection" size="is-small">清除选择</b-button>
-            <b-tooltip style="margin: 0 5px; line-height: 30px;" label="默认选择整张图片" position="is-right" type="is-dark"><vue-fontawesome
-                    icon="circle-exclamation" /></b-tooltip>
+            <b-tooltip style="margin: 0 5px; line-height: 30px;" label="默认选择整张图片" position="is-right"
+                type="is-dark"><vue-fontawesome icon="circle-exclamation" /></b-tooltip>
         </div>
         <div class="image-area" ref="imageAreaRef" @mousedown="handleMouseDown" @mousemove="handleMouseMove"
             @mouseup="handleMouseUp" @mouseleave="handleMouseUp">
-            <img ref="imageRef" :src="imageUrl" alt="Selectable Image" @load="onImageLoad" />
+            <img ref="imageRef" :src="imageUrl" alt="Selectable Image" @load="onImageLoad" draggable="false" />
             <div v-if="selection.active" class="selection-box" :style="selectionStyle"></div>
         </div>
-        
+
 
     </div>
 </template>
@@ -32,7 +32,15 @@ const props = defineProps({
     imageUrl: {
         type: String,
         required: true
-    }
+    },
+    width: {
+        type: Number,
+        default: 432
+    },
+    height: {
+        type: Number,
+        default: 432
+    },
 });
 
 const emit = defineEmits(['selection-string']);
@@ -77,6 +85,7 @@ const onImageLoad = () => {
 };
 
 const handleMouseDown = (event) => {
+    event.preventDefault();
     // 确保是在图片区域内开始
     if (!imageAreaRef.value) return;
 
@@ -172,12 +181,12 @@ const bottomRight = computed(() => ({
 // 计算缩放比例
 const scaleX = computed(() => {
     // 如果图片原始宽度存在，计算缩放比例使得最大宽度为304
-    return naturalWidth.value > 0 ? 304 / naturalWidth.value : 1;
+    return naturalWidth.value > 0 ? props.width / naturalWidth.value : 1;
 });
 
 const scaleY = computed(() => {
     // 如果图片原始高度存在，计算缩放比例使得最大高度为448
-    return naturalHeight.value > 0 ? 448 / naturalHeight.value : 1;
+    return naturalHeight.value > 0 ? props.height / naturalHeight.value : 1;
 });
 
 // 计算反转后的坐标（以图片底部为原点，Y' = imageHeight - y）并保证为整数
@@ -241,7 +250,7 @@ function emitSelectionString() {
 .image-selector-container {
     display: flex;
     flex-direction: column;
-    gap:3px
+    gap: 3px
 }
 
 .image-area {

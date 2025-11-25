@@ -29,12 +29,9 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   response => {
-    if (response.data.success) {
-      return response.data  // 预留处理接口响应的扩展点
-    } else {
-      errorToast(response.data.message || '请求失败')
-      return Promise.reject(new Error(response.data.message || '请求失败'))
-    }
+
+    return response.data  // 预留处理接口响应的扩展点
+
   },
   error => {
     let message = 'Network Error'
@@ -69,12 +66,24 @@ service.interceptors.response.use(
 )
 
 
-function get(url, params = {}, config = {}) {
-  return service.get(url, { params, ...config })
+async function get(url, params = {}, config = {}) {
+  try {
+    return await service.get(url, { params, ...config })
+  } catch (error) {
+    errorToast(error.message)
+  }
 }
 
 function post(url, data = {}, config = {}) {
   return service.post(url, data, config)
 }
 
-export { service as default, get, post }
+function postWithoutToast(url, data = {}, config = {}) {
+  return service.post(url, data, config)
+}
+
+function getWithoutToast(url, params = {}, config = {}) {
+  return service.get(url, { params, ...config })
+}
+
+export { service as default, get, post, postWithoutToast, getWithoutToast }

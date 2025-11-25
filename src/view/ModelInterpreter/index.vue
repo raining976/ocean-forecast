@@ -24,7 +24,7 @@
                     </b-radio>
                 </b-field>
                 <b-field label="选定位置" horizontal>
-                    <image-selector :image-url="imgUrl" @selection-string="onSelection" />
+                    <image-selector :image-url="imgUrl" @selection-string="onSelection" :width="304" :height="448"/>
                 </b-field>
                 <b-field label="选定变量" horizontal>
                     <b-select placeholder="选择一个变量" size="is-small" @update:modelValue="updateVariable">
@@ -38,62 +38,16 @@
                         @click="submitForm">提交分析</b-button></b-field>
             </section>
         </div>
-        <div class="resultContainer">
-            <section>
-                <b-field label="逐日模型可解释性分析结果热图" horizontal>
-                    <b-tooltip label="缓存最近三条分析记录" position="is-bottom" type="is-dark"><vue-fontawesome
-                            icon="circle-exclamation" /></b-tooltip>
-                </b-field>
-                <b-message v-if="modelInterpreterStore.taskList.length == 0">
-                    提交分析之后才会显示结果热图!
-                </b-message>
-            </section>
-            <section class="resultList">
-                <b-notification :closable="false" v-for="task, idx in modelInterpreterStore.taskList"
-                    :key="task.task_id">
-                    <div class="taskId">
-                        <span class="idBox">
-                            任务id: {{ task.task_id }}
-                        </span>
-                        <span class="tag">
-                            <b-tag
-                                :type="modelInterpreterStore.resultList[idx].status === '完成' ? 'is-success is-light' : 'is-warning is-light'">{{
-                                    modelInterpreterStore.resultList[idx].status }}</b-tag>
-                        </span>
-                    </div>
-                    <div class="resultMask" @click="showModal(idx)">
-                        <!-- TODO:这里图片可以压缩 -->
-                        <img src="@/assets/images/result_mask.png" alt="">
-                        <span class="iconBox" v-if="modelInterpreterStore.resultList[idx].status === '完成'">
-                            <vue-fontawesome class="eyeIcon" icon="eye" />
-                        </span>
-                        <span class="iconBox" v-else>
-                            <vue-fontawesome class="eyeIcon" icon="eye-slash" />
-                        </span>
-                    </div>
-                    <div class="createdTime">
-                        提交时间: {{ task.created_time }}
-                    </div>
-                </b-notification>
-            </section>
+        <div class="resultWrapper">
+            <ResultDisplay 
+                title="逐日模型可解释性分析结果热图"
+                tooltip="缓存最近三条分析记录"
+                emptyMessage="提交分析之后才会显示结果热图!"
+                :taskList="modelInterpreterStore.taskList"
+                :resultList="modelInterpreterStore.resultList"
+                modalTitle="逐日模型可解释性分析结果热图"
+            />
         </div>
-        <b-modal v-model="isModalActive">
-            <div class="modalBox">
-                <h3 class="title">逐日模型可解释性分析结果热图</h3>
-                <div class="content">
-                    <li class="imgItem" v-for="(img, index) in modelInterpreterStore.resultList[activeIdx].images"
-                        :key="index">
-                        <img :src="img.startsWith('http') ? img : websiteUrl + img" alt="Result Image"
-                            @click="previewImgUrl = img; isPreviewActive = true" />
-                    </li>
-                </div>
-            </div>
-        </b-modal>
-        <b-modal v-model="isPreviewActive" class="previewModal">
-            <div>
-                <img :src="previewImgUrl.startsWith('http') ? previewImgUrl : websiteUrl + previewImgUrl" alt="Preview Image" />
-            </div>
-        </b-modal>
     </div>
 </template>
 
@@ -223,20 +177,7 @@ const submitForm = () => {
     });
 }
 
-/**
- * 
- * 控制结果详情显示部分
- */
 
-const isModalActive = ref(false);
-const activeIdx = ref(null)
-const showModal = (idx) => {
-    if (modelInterpreterStore.resultList[idx].status !== '完成') return;
-    isModalActive.value = true;
-    activeIdx.value = idx;
-}
-const previewImgUrl = ref(null)
-const isPreviewActive = ref(false);
 
 onMounted(() => {
     // 页面加载时启动所有任务状态轮询
@@ -297,93 +238,10 @@ $container-height: 680px;
 
     }
 
-    .resultContainer {
+    .resultWrapper {
         width: 400px;
-        background-color: var(--bulma-scheme-main);
-        border-radius: 10px;
         height: calc($container-height - 40px);
-        padding: 20px 30px;
         margin: 0px 10px;
-        overflow-y: auto;
-
-        &:deep(.field-label) {
-            flex: auto;
-        }
-
-        .resultList {
-            padding: 10px 0;
-
-            .taskId {
-                display: flex;
-                justify-content: space-between;
-            }
-
-            .taskId,
-            .createdTime {
-                font-size: 14px;
-
-            }
-
-            .resultMask {
-                margin: 3px 0;
-                cursor: pointer;
-
-                &:hover .eyeIcon {
-                    opacity: 1;
-                }
-
-                &:hover img {
-                    filter: blur(4px);
-                }
-
-
-                img {
-                    position: relative;
-                    width: 100%;
-                    display: block;
-                    border-radius: 8px;
-                    filter: blur(3px);
-                    box-shadow: inset 0 0 0 1000px rgba(255, 255, 255, 0.25); // 模糊蒙版（半透明覆盖层）
-                    pointer-events: none;
-
-                }
-
-                .eyeIcon {
-                    position: absolute;
-                    left: 50%;
-                    top: 50%;
-                    transform: translate(-50%, -50%);
-                    pointer-events: auto;
-                    color: var(--bulma-scheme-main-bis);
-                    font-size: 20px;
-                    opacity: 0;
-                    transition: opacity 0.3s;
-
-
-
-                }
-            }
-        }
-    }
-
-    .modalBox {
-        width: 900px;
-        min-height: 600px;
-        padding: 20px 30px;
-        border-radius: 10px;
-        background-color: var(--bulma-scheme-main);
-        margin: 0 auto;
-
-        .title {
-            color: var(--bulma-text);
-            text-align: center;
-        }
-    }
-
-    .previewModal{
-        &:deep(.modal-content){
-            max-width: 100vw !important;
-        }
     }
 }
 </style>

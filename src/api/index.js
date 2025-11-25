@@ -1,4 +1,4 @@
-import { get, post } from "@/utils/request";
+import { get, post, getWithoutToast } from "@/utils/request";
 
 const WEBSITE_URL = import.meta.env.VITE_WEBSITE_URL
 
@@ -54,13 +54,15 @@ export async function useModelInterpreter(formData) {
  */
 export async function get_model_interpreter_result(task_id) {
     try {
-        const response = await get(`/api/model/interpreter/${task_id}`)
+        const response = await getWithoutToast(`/api/model/interpreter/${task_id}`)
         return response
     } catch (error) {
         console.error('Error fetching model interpreter result:', error)
         throw error
     }
 }
+
+
 
 
 /**
@@ -133,7 +135,7 @@ export async function postMonthPrediction(startDate, imagePaths) {
  */
 export async function getDayPredictionResult(taskId) {
     try {
-        const response = await get(`/api/predict/day/${taskId}`)
+        const response = await getWithoutToast(`/api/predict/day/${taskId}`)
         return response
     } catch (error) {
         console.error('Error fetching day prediction result:', error)
@@ -146,7 +148,7 @@ export async function getDayPredictionResult(taskId) {
  */
 export async function getMonthPredictionResult(taskId) {
     try {
-        const response = await get(`/api/predict/month/${taskId}`)
+        const response = await getWithoutToast(`/api/predict/month/${taskId}`)
         return response
     } catch (error) {
         console.error('Error fetching month prediction result:', error)
@@ -186,4 +188,45 @@ export async function getPredictionResult(taskId, type) {
     }
 }
 
+
+/**
+ * 
+ * @param {*} formData  start_time, end_time, pred_gap, grad_type, position, variable
+ * @returns 
+ */
+export async function postDynamicAnalysis(formData) {
+    try {
+        // 创建基本请求参数
+        const { startDate, endDate, grad_month, grad_type, selection } = formData;
+        const params = {
+            start_time: startDate,
+            end_time: endDate,
+            grad_month,
+            grad_type,
+            x1: selection.tl.y, // 非常逆天的接口设计 
+            y1: selection.tl.x,
+            x2: selection.br.y,
+            y2: selection.br.x
+        }
+        const response = await post('/api/dynamics/analysis', params)
+        return response
+    } catch (error) {
+        console.error('Error fetching dynamics analysis:', error)
+        throw error
+    }
+}
+
+
+/**
+ * 获取动态分析任务结果
+ */
+export async function get_dynamic_analysis_result(task_id) {
+    try {
+        const response = await getWithoutToast(`/api/dynamics/analysis/${task_id}`)
+        return response
+    } catch (error) {
+        console.error('Error fetching dynamic analysis result:', error)
+        throw error
+    }
+}
 
