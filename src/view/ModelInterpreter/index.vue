@@ -83,7 +83,7 @@
                 <div class="content">
                     <li class="imgItem" v-for="(img, index) in modelInterpreterStore.resultList[activeIdx].images"
                         :key="index">
-                        <img :src="websiteUrl + img" alt="Result Image"
+                        <img :src="img.startsWith('http') ? img : websiteUrl + img" alt="Result Image"
                             @click="previewImgUrl = img; isPreviewActive = true" />
                     </li>
                 </div>
@@ -91,7 +91,7 @@
         </b-modal>
         <b-modal v-model="isPreviewActive" class="previewModal">
             <div>
-                <img :src="websiteUrl + previewImgUrl" alt="Preview Image" />
+                <img :src="previewImgUrl.startsWith('http') ? previewImgUrl : websiteUrl + previewImgUrl" alt="Preview Image" />
             </div>
         </b-modal>
     </div>
@@ -103,7 +103,7 @@ import { useModelInterpreter } from "@/api"
 import { openToast } from "@/utils/toast"
 import { useModelInterpreterStore } from "@/store"
 
-const websiteUrl = import.meta.env.VITE_WEBSITE_URL
+const websiteUrl = import.meta.env.VITE_WEBSITE_URL 
 const modelInterpreterStore = useModelInterpreterStore();
 
 const dateRange = ref([null, null]);

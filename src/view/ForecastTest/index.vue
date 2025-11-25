@@ -87,7 +87,7 @@
               <section>
                 <div class="carouselBox"
                   style="display: flex; justify-content: center;flex-direction: column; align-items: center;">
-                  <img :src="carousel.path" alt="">
+                  <img :src="carousel.path.startsWith('http') ? carousel.path : websiteUrl + carousel.path" alt="">
                   <p>{{ carousel.date }}</p>
                 </div>
               </section>
