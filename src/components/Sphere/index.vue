@@ -198,7 +198,7 @@ const initCesium = async () => {
     viewer.value = new Cesium.Viewer('cesiumContainer', {
         // Use a local ellipsoid terrain provider to avoid automatic requests
         // to Cesium Ion (https://assets.ion.cesium.com/...)
-        terrainProvider: new Cesium.EllipsoidTerrainProvider(),
+        // terrainProvider: new Cesium.EllipsoidTerrainProvider(),
         timeline: false,
         animation: false,
         geocoder: false,
@@ -207,7 +207,7 @@ const initCesium = async () => {
         baseLayerPicker: false,
         navigationHelpButton: false,
         fullscreenButton: false,
-        imageryProvider: provider,
+        baseLayer: new Cesium.ImageryLayer(provider),
         creditContainer: _creditEl
     })
 
