@@ -44,7 +44,7 @@ const props = defineProps({
 
 
 // 默认图层的贴图
-import defaultImageUrl from "@/assets/images/default-earth-image.png"
+import defaultImageUrl from "@/assets/images/basemap_8k.webp"
 import { watch } from 'vue';
 
 const viewer = ref(null) // 实例
@@ -208,6 +208,7 @@ const initCesium = async () => {
         navigationHelpButton: false,
         fullscreenButton: false,
         baseLayer: new Cesium.ImageryLayer(provider),
+        // baseLayerProvider: provider,
         creditContainer: _creditEl
     })
 
@@ -313,7 +314,8 @@ const initCesium = async () => {
 // 更新当前图层为目标index图层
 const updateToIndex = (index) => {
     if (index < 0 || index >= props.fetchedUrls.length) return;
-    const imageUrl = props.fetchedUrls[index];
+    const item = props.fetchedUrls[index];
+    const imageUrl = item.path || item.url || item;
     let layer;
     try {
         layer = imageryLayers.value.addImageryProvider(
@@ -352,14 +354,16 @@ watch(() => props.isPlaying, (newVal) => {
     }
 })
 
-import { next12Months, next14Days } from '@/utils/dateUtils'
 // 根据daily or monthly 切换slider下方提示
 const sliderHint = computed(() => {
-    if (props.dateType === 'daily') {
-        return next14Days()
-    } else {
-        return next12Months()
+    // 优先使用后端返回的日期
+    if (props.fetchedUrls && props.fetchedUrls.length > 0) {
+        const first = props.fetchedUrls[0]
+        if (first && typeof first === 'object' && first.date) {
+            return props.fetchedUrls.map(item => item.date)
+        }
     }
+
 })
 
 

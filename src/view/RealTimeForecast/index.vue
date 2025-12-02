@@ -43,8 +43,8 @@ function handleProgress(index, status, name) {
 const getDailyImages = async () => {
   try {
     const res = await get_daily_real_time_forecast();
+    fetchedDailyUrls.value = res || [];
     const urls = (res || []).map(item => item.path || item.url || item);
-    fetchedDailyUrls.value = urls;
     dailyPreloader = createImagePreloader(urls, {
       concurrency: 3,
       initialBatch: 3,
@@ -66,8 +66,8 @@ const getDailyImages = async () => {
 const getMonthlyImages = async () => {
   try {
     const res = await get_monthly_real_time_forecast();
+    fetchedMonthlyUrls.value = res || [];
     const urls = (res || []).map(item => item.path || item.url || item);
-    fetchedMonthlyUrls.value = urls;
     monthlyPreloader = createImagePreloader(urls, {
       concurrency: 2,
       initialBatch: 0, // 月份不需要阻塞初次渲染
