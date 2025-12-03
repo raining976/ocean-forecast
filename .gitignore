@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 
 .vscode
+
+# Auto generated types
+src/auto-imports.d.ts
+src/components.d.ts
