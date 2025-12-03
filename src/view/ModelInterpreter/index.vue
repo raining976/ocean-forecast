@@ -1,33 +1,33 @@
 <template>
-    <div class="modelInterpreterContainer">
+    <div class="modelInterpreterContainer" :class="{ 'is-en': locale === 'en-US' }">
         <div class="formContainer">
             <section>
-                <b-field label="数据范围" horizontal class="datepickerBox" :type="dateError ? 'is-danger' : ''"
+                <b-field :label="t('modelInterpreter.dataRange')" horizontal class="datepickerBox" :type="dateError ? 'is-danger' : ''"
                     :message="dateError">
-                    <b-datepicker placeholder="点击选择..." range style="width: 230px;" size="is-small" :min-date="minDate"
+                    <b-datepicker :placeholder="t('common.placeholder.select')" range style="width: 230px;" size="is-small" :min-date="minDate"
                         :max-date="maxDate" @range-end="rangeEnd" @range-start="rangeStart">
                     </b-datepicker>
-                    <b-tooltip style="margin: 0 10px; line-height: 30px;" label="日期有效范围为1979-2023,前后范围最短为14天"
+                    <b-tooltip style="margin: 0 10px; line-height: 30px;" :label="t('modelInterpreter.tooltip')"
                         position="is-right" type="is-dark"><vue-fontawesome icon="circle-exclamation" /></b-tooltip>
                 </b-field>
-                <b-field label="预测间隔" horizontal>
+                <b-field :label="t('modelInterpreter.forecastInterval')" horizontal>
                     <b-numberinput size="is-small" type="is-dark" v-model.number="form.pred_gap" min="1"
                         style="width: 230px; height: 30px;"></b-numberinput><span
-                        style="font-weight: bold; line-height: 30px;">天</span>
+                        style="font-weight: bold; line-height: 30px;">{{ t('common.unit.day') }}</span>
                 </b-field>
-                <b-field label="分析目标" horizontal class="gradType">
+                <b-field :label="t('modelInterpreter.analysisTarget')" horizontal class="gradType">
                     <b-radio v-model="form.grad_type" name="analysisObjective" native-value="sum" type="is-black">
-                        均值
+                        {{ t('modelInterpreter.mean') }}
                     </b-radio>
                     <b-radio v-model="form.grad_type" name="analysisObjective" native-value="l2" type="is-black">
-                        分布
+                        {{ t('modelInterpreter.distribution') }}
                     </b-radio>
                 </b-field>
-                <b-field label="选定位置" horizontal>
+                <b-field :label="t('modelInterpreter.selectedPosition')" horizontal>
                     <image-selector :image-url="imgUrl" @selection-string="onSelection" :width="304" :height="448"/>
                 </b-field>
-                <b-field label="选定变量" horizontal>
-                    <b-select placeholder="选择一个变量" size="is-small" @update:modelValue="updateVariable">
+                <b-field :label="t('modelInterpreter.selectedVariable')" horizontal>
+                    <b-select :placeholder="t('common.placeholder.selectVariable')" size="is-small" @update:modelValue="updateVariable">
                         <option v-for="option, idx in selectableVariable" :value="option.value" :key="idx">
                             {{ option.label }}
                         </option>
@@ -35,17 +35,17 @@
                 </b-field>
 
                 <b-field horizontal><b-button type="is-dark" size="is-small" style="margin: 10px 0;"
-                        @click="submitForm">提交分析</b-button></b-field>
+                        @click="submitForm">{{ t('common.button.submitAnalysis') }}</b-button></b-field>
             </section>
         </div>
         <div class="resultWrapper">
             <ResultDisplay 
-                title="逐日模型可解释性分析结果热图"
-                tooltip="缓存最近三条分析记录"
-                emptyMessage="提交分析之后才会显示结果热图!"
+                :title="t('modelInterpreter.resultTitle')"
+                :tooltip="t('modelInterpreter.resultTooltip')"
+                :emptyMessage="t('common.message.submitToView')"
                 :taskList="modelInterpreterStore.taskList"
                 :resultList="modelInterpreterStore.resultList"
-                modalTitle="逐日模型可解释性分析结果热图"
+                :modalTitle="t('modelInterpreter.resultModalTitle')"
             />
         </div>
     </div>
@@ -56,7 +56,9 @@
 import { useModelInterpreter } from "@/api"
 import { openToast } from "@/utils/toast"
 import { useModelInterpreterStore } from "@/store"
+import { useI18n } from 'vue-i18n'
 
+const { t, locale } = useI18n()
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL 
 const modelInterpreterStore = useModelInterpreterStore();
 
@@ -74,32 +76,32 @@ const form = reactive({
 const minDate = new Date(1979, 0, 1); // 1979-01-01
 const maxDate = new Date(2023, 11, 31); // 2023-12-31
 
-const selectableVariable = [
+const selectableVariable = computed(() => [
     {
-        label: '海冰密集度(SIC)',
+        label: t('modelInterpreter.variables.sic'),
         value: '1'
     },
     {
-        label: '海冰U分量(SI_U)',
+        label: t('modelInterpreter.variables.si_u'),
         value: '2'
     },
     {
-        label: '海冰V分量(SI_V)',
+        label: t('modelInterpreter.variables.si_v'),
         value: '3'
     },
     {
-        label: '2米温度(T2M)',
+        label: t('modelInterpreter.variables.t2m'),
         value: '4'
     },
     {
-        label: '10米U风(U10M)',
+        label: t('modelInterpreter.variables.u10m'),
         value: '5'
     },
     {
-        label: '10米V风(V10M)',
+        label: t('modelInterpreter.variables.v10m'),
         value: '6'
     }
-]
+])
 
 const imgUrl = new URL('@/assets/images/arctic_mask.webp', import.meta.url).href
 
@@ -148,7 +150,7 @@ const rangeEnd = (value) => {
         console.log('dateRange.value', dateRange.value)
         dateError.value = '';
     } else {
-        dateError.value = "选择范围不足14天，未保存。";
+        dateError.value = t('modelInterpreter.error.rangeTooShort');
         dateRange.value = [null, null];
         form.start_time = "";
         form.end_time = "";
@@ -199,6 +201,13 @@ $container-height: 680px;
     justify-content: center;
     align-items: center;
     height: $container-height;
+
+    &.is-en {
+        &:deep(.field-label) {
+            font-size: 14px;
+            flex: 2;
+        }
+    }
 
     .formContainer {
         min-width: 500px;

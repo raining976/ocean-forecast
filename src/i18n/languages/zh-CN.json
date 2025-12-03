@@ -1,0 +1,124 @@
+{
+  "common": {
+    "welcome": "欢迎",
+    "button": {
+      "submit": "提交",
+      "submitAnalysis": "提交分析",
+      "backHome": "返回首页",
+      "refresh": "刷新页面",
+      "feedback": "提交反馈",
+      "clearSelection": "清除选择",
+      "uploadFiles": "上传文件"
+    },
+    "status": {
+      "completed": "完成",
+      "processing": "进行中",
+      "failed": "失败"
+    },
+    "unit": {
+      "day": "天"
+    },
+    "placeholder": {
+      "select": "点击选择...",
+      "selectVariable": "选择一个变量",
+      "selectDate": "点击选择日期",
+      "selectMonth": "点击选择月份"
+    },
+    "message": {
+      "noResult": "暂无结果",
+      "submitToView": "提交分析之后才会显示结果热图!",
+      "submitToViewPrediction": "提交分析之后才会显示预测结果!",
+      "uploadSuccess": "提交分析成功！请前往任务列表查看结果。",
+      "uploadFail": "提交分析失败, 请重试！",
+      "imageUploadFail": "图片上传失败, 请重试！",
+      "selectDataRange": "请选择数据范围",
+      "selectAnalysisTarget": "请选择分析目标",
+      "uploadImageFirst": "请先上传图片后再提交分析！",
+      "selectDateFirst": "请选择一个日期作为第一张图片的日期！"
+    }
+  },
+  "auth": {
+    "login": "登录"
+  },
+  "nav": {
+    "realTimeForecast": "实时预报",
+    "forecastTest": "预报测试",
+    "modelInterpreter": "逐日模型可解释性",
+    "dynamicAnalysis": "逐月动力学分析",
+    "titleZh": "“寒冰”北极海冰时空多尺度预报基础模型",
+    "titleEn": "Foundation Model for Arctic Sea Ice Spatio-Temporal Multi-Scale Forecasting"
+  },
+  "footer": {
+    "copyright": "OUC AI Lab 2025 Copyright by 中国海洋大学人工智能研究院"
+  },
+  "dev": {
+    "title": "页面重构中",
+    "description": "此页面正在进行重构与升级，部分功能暂不可用。我们正在加紧开发，感谢你的耐心。"
+  },
+  "components": {
+    "imageSelector": {
+      "defaultSelection": "默认选择整张图片"
+    },
+    "resultDisplay": {
+      "title": "分析结果",
+      "tooltip": "查看最近的分析记录",
+      "modalTitle": "结果详情",
+      "taskId": "任务id",
+      "submitTime": "提交时间"
+    }
+  },
+  "dynamicAnalysis": {
+    "dataRange": "数据范围",
+    "forecastLeadTime": "预报提前期",
+    "targetMonth": "目标月份",
+    "targetMonthPlaceholder": "目标月份由数据范围和预报提前期决定",
+    "analysisRange": "分析范围",
+    "analysisTarget": "分析目标",
+    "seaIceArea": "海冰面积",
+    "seaIceVariation": "海冰变化",
+    "tooltip": "缓存最近三条动态分析记录",
+    "modalTitle": "逐日动态分析结果热图"
+  },
+  "forecastTest": {
+    "title": "上传图片进行预测",
+    "daily": "逐日",
+    "monthly": "逐月",
+    "selectMonthStart": "选择一个月份作为第一张图片的起始月份",
+    "selectDateStart": "选择一个日期作为第一张图片的日期",
+    "uploadHint": "仅支持PNG：拖拽文件到此处或点击上传（请上传 {num} 张）",
+    "uploadedFiles": "已上传文件数",
+    "resultTitle": "预测结果",
+    "resultTooltip": "缓存3个预测结果",
+    "dailyForecast": "逐日预测",
+    "monthlyForecast": "逐月预测",
+    "modalTitle": "模型预报测试结果"
+  },
+  "modelInterpreter": {
+    "dataRange": "数据范围",
+    "forecastInterval": "预测间隔",
+    "analysisTarget": "分析目标",
+    "mean": "均值",
+    "distribution": "分布",
+    "selectedPosition": "选定位置",
+    "selectedVariable": "选定变量",
+    "tooltip": "日期有效范围为1979-2023,前后范围最短为14天",
+    "resultTitle": "逐日模型可解释性分析结果热图",
+    "resultTooltip": "缓存最近三条分析记录",
+    "resultModalTitle": "逐日模型可解释性分析结果热图",
+    "variables": {
+      "sic": "海冰密集度(SIC)",
+      "si_u": "海冰U分量(SI_U)",
+      "si_v": "海冰V分量(SI_V)",
+      "t2m": "2米温度(T2M)",
+      "u10m": "10米U风(U10M)",
+      "v10m": "10米V风(V10M)"
+    },
+    "error": {
+      "rangeTooShort": "选择范围不足14天，未保存。"
+    }
+  },
+  "realTimeForecast": {
+    "future14Days": "未来14日",
+    "future12Months": "未来12月"
+  }
+}

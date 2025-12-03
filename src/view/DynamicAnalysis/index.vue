@@ -1,44 +1,44 @@
 <template>
-  <div class="DynamicAnalysisContainer">
+  <div class="DynamicAnalysisContainer" :class="{ 'is-en': locale === 'en-US' }">
     <div class="formContainer">
-      <section>
-        <b-field label="数据范围" horizontal class="datepickerBox" :type="dateError ? 'is-danger' : ''"
+      <section class="formFieldSection">
+        <b-field :label="t('dynamicAnalysis.dataRange')" horizontal class="datepickerBox" :type="dateError ? 'is-danger' : ''"
           :message="dateError">
-          <b-datepicker placeholder="点击选择..." range style="width: 230px;" size="is-small" @range-end="rangeEnd"
+          <b-datepicker :placeholder="t('common.placeholder.select')" range style="width: 230px;" size="is-small" @range-end="rangeEnd"
             @range-start="rangeStart" type="month">
           </b-datepicker>
         </b-field>
-        <b-field label="预报提前期" horizontal class="advanceDate">
+        <b-field :label="t('dynamicAnalysis.forecastLeadTime')" horizontal class="advanceDate">
           <b-numberinput size="is-small" type="is-dark" v-model.number="pred_gap" min="1"
-            style="width: 230px; height: 30px;"></b-numberinput>
+            style="width: 200px; height: 30px;"></b-numberinput>
         </b-field>
 
-        <b-field label="目标月份" horizontal>
+        <b-field :label="t('dynamicAnalysis.targetMonth')" horizontal>
           <b-input size="is-small" disabled style="width: 250px;" :value="targetMonth" readonly
-            placeholder="目标月份由数据范围和预报提前期决定"></b-input>
+            :placeholder="t('dynamicAnalysis.targetMonthPlaceholder')"></b-input>
         </b-field>
 
-        <b-field label="分析范围" horizontal>
+        <b-field :label="t('dynamicAnalysis.analysisRange')" horizontal>
           <image-selector :image-url="imgUrl" @selection-string="onSelection" :width="432" :height="432"  />
         </b-field>
 
-        <b-field label="分析目标" horizontal class="gradType">
+        <b-field :label="t('dynamicAnalysis.analysisTarget')" horizontal class="gradType">
           <b-radio v-model="form.grad_type" name="analysisObjective" native-value="sum" type="is-black" size="is-small">
-            海冰面积
+            {{ t('dynamicAnalysis.seaIceArea') }}
           </b-radio>
           <b-radio v-model="form.grad_type" name="analysisObjective" native-value="variation" type="is-black"
             size="is-small">
-            海冰变化
+            {{ t('dynamicAnalysis.seaIceVariation') }}
           </b-radio>
         </b-field>
 
         <b-field horizontal><b-button type="is-dark" size="is-small" style="margin: 10px 0;"
-            @click="submitForm">提交分析</b-button></b-field>
+            @click="submitForm">{{ t('common.button.submitAnalysis') }}</b-button></b-field>
       </section>
     </div>
     <div class="resultWrapper">
-      <ResultDisplay tooltip="缓存最近三条动态分析记录" emptyMessage="提交分析之后才会显示结果热图!" :taskList="dynamicAnalysisStore.taskList"
-        :resultList="dynamicAnalysisStore.resultList" modalTitle="逐日动态分析结果热图" />
+      <ResultDisplay :tooltip="t('dynamicAnalysis.tooltip')" :emptyMessage="t('common.message.submitToView')" :taskList="dynamicAnalysisStore.taskList"
+        :resultList="dynamicAnalysisStore.resultList" :modalTitle="t('dynamicAnalysis.modalTitle')" />
     </div>
   </div>
 </template>
@@ -46,9 +46,11 @@
 <script setup>
 import { ref, reactive, computed } from 'vue';
 import { useDynamicAnalysisStore } from "@/store"
+import { useI18n } from 'vue-i18n'
 
 import { openToast } from "@/utils/toast"
 
+const { t, locale } = useI18n()
 const dynamicAnalysisStore = useDynamicAnalysisStore();
 
 const imgUrl = new URL('@/assets/images/land_image.webp', import.meta.url).href;
@@ -118,11 +120,11 @@ const onSelection = (selection) => {
 import { postDynamicAnalysis } from "@/api"
 const submitForm = () => {
   if (!form.startDate || !form.endDate) {
-    openToast('请选择数据范围');
+    openToast('common.message.selectDataRange');
     return;
   }
   if (!form.grad_type) {
-    openToast('请选择分析目标');
+    openToast('common.message.selectAnalysisTarget');
     return;
   }
   const formData = Object.assign({}, form);
@@ -146,13 +148,20 @@ const submitForm = () => {
 </script>
 
 <style scoped lang="scss">
-$container-height: 580px;
+$container-height: 650px;
 
 .DynamicAnalysisContainer {
   display: flex;
   justify-content: center;
   align-items: center;
   height: $container-height;
+
+  &.is-en {
+    &:deep(.field-label) {
+      font-size: 16px;
+      flex: 2;
+    }
+  }
 
   .formContainer {
     min-width: 500px;
@@ -162,6 +171,12 @@ $container-height: 580px;
     height: calc($container-height - 40px);
     background-color: var(--bulma-scheme-main);
 
+    .formFieldSection{
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
     &:deep(.field.is-horizontal) {
       margin-bottom: 8px;
     }
@@ -191,14 +206,15 @@ $container-height: 580px;
     }
 
     &:deep(.advanceDate .field-label .label) {
-      width: 90px;
+      min-width: 90px;
     }
   }
 
   .resultWrapper {
     width: 400px;
-    height: calc($container-height - 40px);
+    height: calc($container-height);
     margin: 0px 10px;
+    padding: 20px;
   }
 
 

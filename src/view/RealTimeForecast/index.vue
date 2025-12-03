@@ -2,8 +2,8 @@
   <div class="realTimeForecastContainer">
     <b-section class="switcherSection">
       <b-tabs type="is-toggle" size="is-small" v-model="rtForecastStore.dateType">
-        <b-tab-item label="未来14日" value="daily"></b-tab-item>
-        <b-tab-item label="未来12月" value="monthly"></b-tab-item>
+        <b-tab-item :label="t('realTimeForecast.future14Days')" value="daily"></b-tab-item>
+        <b-tab-item :label="t('realTimeForecast.future12Months')" value="monthly"></b-tab-item>
       </b-tabs>
     </b-section>
     <!-- 球 -->
@@ -18,7 +18,9 @@ import { get_monthly_real_time_forecast, get_daily_real_time_forecast } from '@/
 import { useRTForecastStore } from '@/store'
 import { watch, ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { createImagePreloader } from '@/utils/imagePreloader'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const rtForecastStore = useRTForecastStore();
 
 const sphereRef = ref(null);

@@ -3,13 +3,13 @@
         <div class="resultContainer">
             <section>
                 <!-- 标题和提示信息 -->
-                <h3 class="title">{{ title }} <b-tooltip :label="tooltip" position="is-bottom" type="is-dark">
+                <h3 class="title">{{ displayTitle }} <b-tooltip :label="displayTooltip" position="is-bottom" type="is-dark">
                         <vue-fontawesome icon="circle-exclamation" />
                     </b-tooltip></h3>
 
                 <!-- 空数据提示 -->
                 <b-message v-if="taskList.length == 0">
-                    {{ emptyMessage }}
+                    {{ displayEmptyMessage }}
                 </b-message>
             </section>
             <section class="resultList">
@@ -17,13 +17,13 @@
                 <b-notification :closable="false" v-for="(task, idx) in taskList" :key="task.task_id">
                     <div class="taskId">
                         <span class="idBox">
-                            任务id: {{ task.task_id }}
+                            {{ t('components.resultDisplay.taskId') }}: {{ task.task_id }}
                         </span>
                         <span class="tag">
                             <!-- 状态标签 -->
                             <b-tag
                                 :type="resultList[idx]?.status === '完成' ? 'is-success is-light' : 'is-warning is-light'">
-                                {{ resultList[idx]?.status }}
+                                {{ resultList[idx]?.status === '完成' ? t('common.status.completed') : (resultList[idx]?.status === '进行中' ? t('common.status.processing') : resultList[idx]?.status) }}
                             </b-tag>
                         </span>
                     </div>
@@ -38,7 +38,7 @@
                         </span>
                     </div>
                     <div class="createdTime">
-                        提交时间: {{ task.created_time }}
+                        {{ t('components.resultDisplay.submitTime') }}: {{ task.created_time }}
                     </div>
                 </b-notification>
             </section>
@@ -47,7 +47,7 @@
         <!-- 详情弹窗 -->
         <b-modal v-model="isModalActive">
             <div class="modalBox">
-                <h3 class="title">{{ modalTitle }}</h3>
+                <h3 class="title">{{ displayModalTitle }}</h3>
                 <div class="content">
                     <li class="imgItem" v-for="(img, index) in currentImages" :key="index">
                         <img :src="getImageUrl(img?.path || img)" alt="Result Image" @click="previewImage(img?.path || img)" />
@@ -68,23 +68,26 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // 定义组件接收的属性
 const props = defineProps({
     // 标题
     title: {
         type: String,
-        default: '分析结果',
+        default: '',
     },
     // 提示信息
     tooltip: {
         type: String,
-        default: '查看最近的分析记录'
+        default: ''
     },
     // 无数据时的提示信息
     emptyMessage: {
         type: String,
-        default: '暂无结果'
+        default: ''
     },
     // 任务列表数据
     taskList: {
@@ -101,9 +104,14 @@ const props = defineProps({
     // 弹窗标题
     modalTitle: {
         type: String,
-        default: '结果详情'
+        default: ''
     }
 })
+
+const displayTitle = computed(() => props.title || t('components.resultDisplay.title'))
+const displayTooltip = computed(() => props.tooltip || t('components.resultDisplay.tooltip'))
+const displayEmptyMessage = computed(() => props.emptyMessage || t('common.message.noResult'))
+const displayModalTitle = computed(() => props.modalTitle || t('components.resultDisplay.modalTitle'))
 
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL
 

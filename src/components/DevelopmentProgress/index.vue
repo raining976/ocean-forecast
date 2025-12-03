@@ -2,13 +2,13 @@
     <section class="dev-page">
         <div class="dev-card" role="status" aria-live="polite">
             <div class="dev-icon" v-html="iconSvg" aria-hidden="true"></div>
-            <h2 class="dev-title">{{ title }}</h2>
-            <p class="dev-desc">{{ description }}</p>
+            <h2 class="dev-title">{{ displayTitle }}</h2>
+            <p class="dev-desc">{{ displayDescription }}</p>
 
             <div class="dev-actions">
-                <button class="btn primary" @click="goHome" type="button">返回首页</button>
-                <button class="btn" @click="reload" type="button">刷新页面</button>
-                <a v-if="feedbackUrl" :href="feedbackUrl" target="_blank" rel="noopener" class="btn link">提交反馈</a>
+                <button class="btn primary" @click="goHome" type="button">{{ t('common.button.backHome') }}</button>
+                <button class="btn" @click="reload" type="button">{{ t('common.button.refresh') }}</button>
+                <a v-if="feedbackUrl" :href="feedbackUrl" target="_blank" rel="noopener" class="btn link">{{ t('common.button.feedback') }}</a>
             </div>
 
             <p class="dev-meta" v-if="meta">{{ meta }}</p>
@@ -17,18 +17,24 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
-    title: { type: String, default: '页面重构中' },
+    title: { type: String, default: '' },
     description: {
         type: String,
-        default: '此页面正在进行重构与升级，部分功能暂不可用。我们正在加紧开发，感谢你的耐心。'
+        default: ''
     },
     feedbackUrl: { type: String, default: '' },
     meta: { type: String, default: '' }
 })
+
+const displayTitle = computed(() => props.title || t('dev.title'))
+const displayDescription = computed(() => props.description || t('dev.description'))
 
 const router = useRouter()
 

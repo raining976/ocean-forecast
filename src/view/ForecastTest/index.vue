@@ -1,10 +1,10 @@
 <template>
   <div class="forecastTestContainer">
     <div class="formContainer">
-      <h3 class="title">上传图片进行预测</h3>
+      <h3 class="title">{{ t('forecastTest.title') }}</h3>
       <b-tabs type="is-toggle" size="is-small" class="typeTabs" v-model="predictionType">
-        <b-tab-item label="逐日" value="daily" @click="predictionType = 'daily'"></b-tab-item>
-        <b-tab-item label="逐月" value="monthly" @click="predictionType = 'monthly'"></b-tab-item>
+        <b-tab-item :label="t('forecastTest.daily')" value="daily" @click="predictionType = 'daily'"></b-tab-item>
+        <b-tab-item :label="t('forecastTest.monthly')" value="monthly" @click="predictionType = 'monthly'"></b-tab-item>
       </b-tabs>
       <section>
         <b-field :label="uploadedFilesNum" require>
@@ -13,9 +13,9 @@
         </b-field>
       </section>
       <section style="margin: 10px 0;">
-        <b-field :label="predictionType === 'monthly' ? '选择一个月份作为第一张图片的起始月份' : '选择一个日期作为第一张图片的日期'">
+        <b-field :label="predictionType === 'monthly' ? t('forecastTest.selectMonthStart') : t('forecastTest.selectDateStart')">
           <b-datepicker :type="predictionType === 'monthly' ? 'month' : undefined" @update:modelValue="formatDate"
-            size="is-small" style="width: 330px;" :placeholder="predictionType === 'monthly' ? '点击选择月份' : '点击选择日期'"
+            size="is-small" style="width: 330px;" :placeholder="predictionType === 'monthly' ? t('common.placeholder.selectMonth') : t('common.placeholder.selectDate')"
             trap-focus></b-datepicker>
         </b-field>
       </section>
@@ -25,7 +25,7 @@
             :disabled="fileList.length >= imageNum">
             <section class="upload-dropzone">
               <p class="uploadIconBox"><vue-fontawesome icon="upload" /></p>
-              <p class="uploadHint">仅支持PNG：拖拽文件到此处或点击上传（请上传 {{ imageNum }} 张）</p>
+              <p class="uploadHint">{{ t('forecastTest.uploadHint', { num: imageNum }) }}</p>
             </section>
           </b-upload>
         </b-field>
@@ -38,28 +38,28 @@
       </section>
 
       <!-- <b-button class="submitBtn" type="is-dark" size="is-small" @click="uploadFiles">上传文件</b-button> -->
-      <b-button class="submitBtn" type="is-dark" size="is-small" @click="submitForm">提交分析</b-button>
+      <b-button class="submitBtn" type="is-dark" size="is-small" @click="submitForm">{{ t('common.button.submitAnalysis') }}</b-button>
     </div>
     <div class="resultContainer">
-      <h3 class="title">预测结果 <b-tooltip label="缓存3个预测结果" position="is-right" type="is-dark"><vue-fontawesome
+      <h3 class="title">{{ t('forecastTest.resultTitle') }} <b-tooltip :label="t('forecastTest.resultTooltip')" position="is-right" type="is-dark"><vue-fontawesome
             icon="circle-exclamation" /></b-tooltip></h3>
       <section>
         <b-message v-if="predictionTestStore.taskList.length == 0">
-          提交分析之后才会显示预测结果!
+          {{ t('common.message.submitToViewPrediction') }}
         </b-message>
       </section>
       <section class="resultList">
         <b-notification :closable="false" v-for="task, idx in predictionTestStore.taskList" :key="task.task_id">
           <div class="taskId">
             <span class="idBox">
-              任务id: {{ task.task_id }}
+              {{ t('components.resultDisplay.taskId') }}: {{ task.task_id }}
             </span>
             <span class="tag">
-              <b-tag type='is-info is-light'>{{ task.type === 'daily' ? '逐日预测' : '逐月预测' }}
+              <b-tag type='is-info is-light'>{{ task.type === 'daily' ? t('forecastTest.dailyForecast') : t('forecastTest.monthlyForecast') }}
               </b-tag>
               <b-tag
                 :type="predictionTestStore.resultList[idx].status === '完成' ? 'is-success is-light' : 'is-warning is-light'">{{
-                  predictionTestStore.resultList[idx].status }}</b-tag>
+                  predictionTestStore.resultList[idx].status === '完成' ? t('common.status.completed') : (predictionTestStore.resultList[idx].status === '进行中' ? t('common.status.processing') : predictionTestStore.resultList[idx].status) }}</b-tag>
             </span>
           </div>
           <div class="resultMask" @click="showModal(idx)">
@@ -73,14 +73,14 @@
             </span>
           </div>
           <div class="createdTime">
-            提交时间: {{ task.created_time }}
+            {{ t('components.resultDisplay.submitTime') }}: {{ task.created_time }}
           </div>
         </b-notification>
       </section>
     </div>
     <b-modal v-model="isModalActive">
       <div class="modalBox">
-        <h3 class="title">模型预报测试结果</h3>
+        <h3 class="title">{{ t('forecastTest.modalTitle') }}</h3>
         <div class="content">
           <b-carousel progress-type="is-dark" pause-text="">
             <b-carousel-item v-for="(carousel, i) in predictionTestStore.resultList[activeIdx].images" :key="i">
@@ -105,7 +105,9 @@
 import { upload_multiple_pngs, postPrediction } from "@/api"
 import { errorToast, openToast } from "@/utils/toast"
 import { usePredictionTestStore } from "@/store"
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL
 const predictionTestStore = usePredictionTestStore();
 
@@ -147,31 +149,31 @@ const filesOnUpdate = (files) => {
 
 // 已上传文件数量显示
 const uploadedFilesNum = computed(() => {
-  return `已上传文件数: ${fileList.value.length} / ${imageNum.value}`;
+  return `${t('forecastTest.uploadedFiles')}: ${fileList.value.length} / ${imageNum.value}`;
 });
 
 // 提交表单
 const submitForm = async () => {
   // 在提交表单之前要先上传图片
   if (fileList.value.length === 0) {
-    errorToast('请先上传图片后再提交分析！');
+    errorToast('common.message.uploadImageFirst');
     return;
   }
   if (!selectedDate.value) {
-    errorToast('请选择一个日期作为第一张图片的日期！');
+    errorToast('common.message.selectDateFirst');
     return;
   }
   try {
     await uploadFiles(fileList.value);
     const res = await postPrediction(predictionType.value, selectedDate.value, imagePathList.value);
     if (res.success) {
-      openToast('提交分析成功！请前往任务列表查看结果。');
+      openToast('common.message.uploadSuccess');
       const data = res.data
       predictionTestStore.addTask(data.task_id, predictionType.value);
 
     }
   } catch (error) {
-    errorToast('提交分析失败, 请重试！');
+    errorToast('common.message.uploadFail');
   } finally {
     clearForm();
   }
@@ -185,7 +187,7 @@ const uploadFiles = async (files) => {
     })
     .catch(error => {
       console.error('Error uploading files:', error);
-      errorToast('图片上传失败, 请重试！');
+      errorToast('common.message.imageUploadFail');
     });
 }
 

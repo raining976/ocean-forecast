@@ -10,8 +10,8 @@
             <p>右上: ({{ topRight.x }}, {{ topRight.y }})</p>
             <p>左下: ({{ bottomLeft.x }}, {{ bottomLeft.y }})</p>
             <p>右下: ({{ bottomRight.x }}, {{ bottomRight.y }})</p> -->
-            <b-button @click="clearSelection" size="is-small">清除选择</b-button>
-            <b-tooltip style="margin: 0 5px; line-height: 30px;" label="默认选择整张图片" position="is-right"
+            <b-button @click="clearSelection" size="is-small">{{ t('common.button.clearSelection') }}</b-button>
+            <b-tooltip style="margin: 0 5px; line-height: 30px;" :label="t('components.imageSelector.defaultSelection')" position="is-right"
                 type="is-dark"><vue-fontawesome icon="circle-exclamation" /></b-tooltip>
         </div>
         <div class="image-area" ref="imageAreaRef" @mousedown="handleMouseDown" @mousemove="handleMouseMove"
@@ -26,6 +26,9 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // 待划定选区的图片URL
 const props = defineProps({

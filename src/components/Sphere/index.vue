@@ -36,8 +36,8 @@ const props = defineProps({
     isPlaying: { type: Boolean, default: true },
     switchInterval: { type: Number, default: 1500 },
     fetchedUrls: { type: Array, default: () => [] },
-    dateType: { type: String, default: 'daily' } // daily or monthly
-
+    dateType: { type: String, default: 'daily' }, // daily or monthly
+    defaultImageUrl: { type: String, default: defaultImageUrl }
 })
 
 
@@ -45,6 +45,9 @@ const props = defineProps({
 
 // 默认图层的贴图
 import defaultImageUrl from "@/assets/images/basemap_8k.webp"
+
+
+
 import { watch } from 'vue';
 
 const viewer = ref(null) // 实例
@@ -177,7 +180,7 @@ const initCesium = async () => {
     Cesium.Ion.defaultAccessToken = undefined
 
     const provider = new Cesium.SingleTileImageryProvider({
-        url: defaultImageUrl,
+        url: props.defaultImageUrl,
         rectangle: Cesium.Rectangle.fromDegrees(...props.initialCoords)
     })
 
@@ -431,7 +434,7 @@ defineEmits(['handlePlay', 'handlePause'])
     }
 
     &:deep(.b-slider-tick-label) {
-        width: 60px;
+        width: 80px;
         color: #fff;
     }
 }

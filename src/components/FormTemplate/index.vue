@@ -5,7 +5,7 @@
                 <!-- Date Range -->
                 <b-field v-if="field.type === 'date-range'" :label="field.label" horizontal class="datepickerBox"
                     :type="field.error ? 'is-danger' : ''" :message="field.error">
-                    <b-datepicker v-model="form[field.key]" :placeholder="field.placeholder || '点击选择...'" range
+                    <b-datepicker v-model="form[field.key]" :placeholder="field.placeholder || t('common.placeholder.select')" range
                         style="width: 230px;" size="is-small" v-bind="field.props"
                         @range-end="(val) => $emit('range-end', val)"
                         @range-start="(val) => $emit('range-start', val)">
@@ -37,24 +37,28 @@
 
                 <!-- Select -->
                 <b-field v-else-if="field.type === 'select'" :label="field.label" horizontal>
-                    <b-select v-model="form[field.key]" :placeholder="field.placeholder || '选择一个变量'" size="is-small">
+                    <b-select v-model="form[field.key]" :placeholder="field.placeholder || t('common.placeholder.selectVariable')" size="is-small">
                         <option v-for="(option, idx) in field.options" :value="option.value" :key="idx">
                             {{ option.label }}
                         </option>
                     </b-select>
                 </b-field>
+
             </template>
 
             <slot name="extra-fields"></slot>
 
             <b-field horizontal><b-button type="is-dark" size="is-small" style="margin: 10px 0;"
-                    @click="submitForm">提交分析</b-button></b-field>
+                    @click="submitForm">{{ t('common.button.submitAnalysis') }}</b-button></b-field>
         </section>
     </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
     modelValue: {

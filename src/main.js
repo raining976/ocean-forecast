@@ -4,6 +4,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import './style/global.css'
 import App from './App.vue'
 import router from './router'
+import i18n from './i18n'
 
 // 导入 Buefy 和 Bulma 样式
 import Buefy from 'buefy'
@@ -30,7 +31,7 @@ const app = createApp(App)
 // 注册全局组件
 app.component('vue-fontawesome', FontAwesomeIcon);
 
-app.use(pinia).use(router).use(Buefy, {
+app.use(pinia).use(router).use(i18n).use(Buefy, {
     // 告诉 Buefy 使用 Font Awesome作为默认图标包
     defaultIconPack: 'fas', // 'fas' for solid, 'far' for regular, 'fab' for brands
     // 关键：告诉 Buefy 使用我们刚刚注册的 <vue-fontawesome> 组件来渲染图标

@@ -1,0 +1,128 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "button": {
+      "submit": "Submit",
+      "submitAnalysis": "Submit Analysis",
+      "backHome": "Back Home",
+      "refresh": "Refresh",
+      "feedback": "Feedback",
+      "clearSelection": "Clear Selection",
+      "uploadFiles": "Upload Files"
+    },
+    "status": {
+      "completed": "Completed",
+      "processing": "Processing",
+      "failed": "Failed"
+    },
+    "unit": {
+      "day": "Days"
+    },
+    "placeholder": {
+      "select": "Select...",
+      "selectVariable": "Select a variable",
+      "selectDate": "Select date",
+      "selectMonth": "Select month"
+    },
+    "message": {
+      "noResult": "No results yet",
+      "submitToView": "Submit analysis to view result heatmap!",
+      "submitToViewPrediction": "Submit analysis to view prediction results!",
+      "uploadSuccess": "Analysis submitted successfully! Please check the task list.",
+      "uploadFail": "Analysis submission failed, please try again!",
+      "imageUploadFail": "Image upload failed, please try again!",
+      "selectDataRange": "Please select data range",
+      "selectAnalysisTarget": "Please select analysis target",
+      "uploadImageFirst": "Please upload images before submitting analysis!",
+      "selectDateFirst": "Please select a date for the first image!"
+    },
+    "toast": {
+      "success": "Success",
+      "error": "Error"
+    }
+  },
+  "auth": {
+    "login": "Login"
+  },
+  "nav": {
+    "realTimeForecast": "Real-time Forecast",
+    "forecastTest": "Forecast Test",
+    "modelInterpreter": "Daily Model Interpretability",
+    "dynamicAnalysis": "Monthly Dynamics Analysis",
+    "titleZh": "“Hanbing” Foundation Model for Arctic Sea Ice Spatio-Temporal Multi-Scale Forecasting",
+    "titleEn": "Foundation Model for Arctic Sea Ice Spatio-Temporal Multi-Scale Forecasting"
+  },
+  "footer": {
+    "copyright": "OUC AI Lab 2025 Copyright by OUC AI Lab"
+  },
+  "dev": {
+    "title": "Page Under Construction",
+    "description": "This page is currently being refactored and upgraded. Some features may be unavailable. We are working hard on it, thank you for your patience."
+  },
+  "components": {
+    "imageSelector": {
+      "defaultSelection": "Select entire image by default"
+    },
+    "resultDisplay": {
+      "title": "Analysis Results",
+      "tooltip": "View recent analysis records",
+      "modalTitle": "Result Details",
+      "taskId": "Task ID",
+      "submitTime": "Submit Time"
+    }
+  },
+  "dynamicAnalysis": {
+    "dataRange": "Data Range",
+    "forecastLeadTime": "Forecast Time",
+    "targetMonth": "Target Month",
+    "targetMonthPlaceholder": "Determined by data range and lead time",
+    "analysisRange": "Analysis Range",
+    "analysisTarget": "Analysis Target",
+    "seaIceArea": "Sea Ice Area",
+    "seaIceVariation": "Sea Ice Variation",
+    "tooltip": "Cache last 3 dynamic analysis records",
+    "modalTitle": "Daily Dynamic Analysis Result Heatmap"
+  },
+  "forecastTest": {
+    "title": "Upload Images for Prediction",
+    "daily": "Daily",
+    "monthly": "Monthly",
+    "selectMonthStart": "Select a month as the start month for the first image",
+    "selectDateStart": "Select a date as the date for the first image",
+    "uploadHint": "PNG only: Drag files here or click to upload (Please upload {num} images)",
+    "uploadedFiles": "Uploaded Files",
+    "resultTitle": "Prediction Results",
+    "resultTooltip": "Cache 3 prediction results",
+    "dailyForecast": "Daily Forecast",
+    "monthlyForecast": "Monthly Forecast",
+    "modalTitle": "Model Forecast Test Results"
+  },
+  "modelInterpreter": {
+    "dataRange": "Data Range",
+    "forecastInterval": "Forecast Interval",
+    "analysisTarget": "Analysis Target",
+    "mean": "Mean",
+    "distribution": "Distribution",
+    "selectedPosition": "Selected Position",
+    "selectedVariable": "Selected Variable",
+    "tooltip": "Date range valid for 1979-2023, min range 14 days",
+    "resultTitle": "Daily Model Interpretability Analysis Result Heatmap",
+    "resultTooltip": "Cache last 3 analysis records",
+    "resultModalTitle": "Daily Model Interpretability Analysis Result Heatmap",
+    "variables": {
+      "sic": "Sea Ice Concentration (SIC)",
+      "si_u": "Sea Ice U Component (SI_U)",
+      "si_v": "Sea Ice V Component (SI_V)",
+      "t2m": "2m Temperature (T2M)",
+      "u10m": "10m U Wind (U10M)",
+      "v10m": "10m V Wind (V10M)"
+    },
+    "error": {
+      "rangeTooShort": "Selected range is less than 14 days, not saved."
+    }
+  },
+  "realTimeForecast": {
+    "future14Days": "Future 14 Days",
+    "future12Months": "Future 12 Months"
+  }
+}

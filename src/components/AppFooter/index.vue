@@ -1,6 +1,11 @@
 <template>
-    <div class="appFooter">OUC AI Lab 2025 Copyright by 中国海洋大学人工智能研究院</div>
+    <div class="appFooter">{{ t('footer.copyright') }}</div>
 </template>
+
+<script setup>
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
+</script>
 
 <style lang="scss" scoped>
 .appFooter{
