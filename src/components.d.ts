@@ -16,6 +16,7 @@ declare module 'vue' {
     DevelopmentProgress: typeof import('./components/DevelopmentProgress/index.vue')['default']
     FormTemplate: typeof import('./components/FormTemplate/index.vue')['default']
     ImageSelector: typeof import('./components/ImageSelector/index.vue')['default']
+    NoticeToWeb: typeof import('./components/NoticeToWeb/index.vue')['default']
     ResultDisplay: typeof import('./components/ResultDisplay/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

@@ -35,6 +35,10 @@
       "selectAnalysisTarget": "请选择分析目标",
       "uploadImageFirst": "请先上传图片后再提交分析！",
       "selectDateFirst": "请选择一个日期作为第一张图片的日期！"
+    },
+    "notice": {
+      "desktopOnlyTitle": "请使用电脑端访问",
+      "desktopOnlyDesc": "该功能需要使用电脑浏览器打开以获得最佳体验。"
     }
   },
   "auth": {

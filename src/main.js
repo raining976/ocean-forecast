@@ -14,11 +14,11 @@ import 'buefy/dist/css/buefy.css'
 
 // 导入 Font Awesome 的核心部分
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faCirclePause, faEarthAmericas, faCirclePlay, faAngleLeft, faAngleRight, faChevronUp, faChevronDown, faPlus, faMinus, faCircleExclamation, faEye, faEyeSlash, faUpload} from '@fortawesome/free-solid-svg-icons'; // <-- 按需导入您想使用的图标
+import { faCirclePause, faEarthAmericas, faCirclePlay, faAngleLeft, faAngleRight, faChevronUp, faChevronDown, faPlus, faMinus, faCircleExclamation, faEye, faEyeSlash, faUpload, faBars, faTimes, faDesktop } from '@fortawesome/free-solid-svg-icons'; // <-- 按需导入您想使用的图标
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 // 这是 SVG Core 的工作方式：必须显式添加图标，这样最终打包时只会包含用到的图标
-library.add(faCirclePause, faEarthAmericas, faCirclePlay, faAngleLeft, faAngleRight, faChevronUp, faChevronDown, faPlus, faMinus, faCircleExclamation, faEye, faEyeSlash, faUpload);
+library.add(faCirclePause, faEarthAmericas, faCirclePlay, faAngleLeft, faAngleRight, faChevronUp, faChevronDown, faPlus, faMinus, faCircleExclamation, faEye, faEyeSlash, faUpload, faBars, faTimes, faDesktop);
 
 
 

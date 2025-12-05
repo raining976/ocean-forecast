@@ -12,8 +12,8 @@
                 <b-field>
                     <b-slider @change="sliderChange" v-model="currentIndex" :min="0"
                         :max="props.fetchedUrls.length || 14" ticks>
-                        <template v-for="val, index in props.fetchedUrls.length" :key="val">
-                            <b-slider-tick :value="val"> {{ sliderHint[index] }}</b-slider-tick>
+                        <template v-for="val, index in props.fetchedUrls.length" :key="val" >
+                            <b-slider-tick :value="val" class="desktop-only"> {{ sliderHint[index] }}</b-slider-tick>
                         </template>
                     </b-slider>
                 </b-field>
@@ -436,6 +436,13 @@ defineEmits(['handlePlay', 'handlePause'])
     &:deep(.b-slider-tick-label) {
         width: 80px;
         color: #fff;
+    }
+}
+
+
+@media screen and (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
     }
 }
 </style>

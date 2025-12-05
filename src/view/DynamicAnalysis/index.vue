@@ -1,4 +1,7 @@
 <template>
+  <div class="noticeContainer">
+    <NoticeToWeb />
+  </div>
   <div class="DynamicAnalysisContainer" :class="{ 'is-en': locale === 'en-US' }">
     <div class="formContainer">
       <section class="formFieldSection">
@@ -218,5 +221,18 @@ $container-height: 650px;
   }
 
 
+}
+
+.noticeContainer{
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  .DynamicAnalysisContainer{
+    display: none;
+  }
+  .noticeContainer{
+    display: block;
+  }
 }
 </style>

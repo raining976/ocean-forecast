@@ -1,4 +1,5 @@
 <template>
+    <div class="NoticeContainer"><NoticeToWeb /></div>
     <div class="modelInterpreterContainer" :class="{ 'is-en': locale === 'en-US' }">
         <div class="formContainer">
             <section>
@@ -57,6 +58,7 @@ import { useModelInterpreter } from "@/api"
 import { openToast } from "@/utils/toast"
 import { useModelInterpreterStore } from "@/store"
 import { useI18n } from 'vue-i18n'
+import NoticeToWeb from '@/components/NoticeToWeb/index.vue'
 
 const { t, locale } = useI18n()
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL 
@@ -252,5 +254,18 @@ $container-height: 680px;
         height: calc($container-height - 40px);
         margin: 0px 10px;
     }
+}
+.NoticeContainer{
+    display: none;
+}
+
+@media screen and (max-width: 768px) {
+  .modelInterpreterContainer{
+    display: none;
+  }
+
+  .NoticeContainer{
+    display: block;
+  }
 }
 </style>

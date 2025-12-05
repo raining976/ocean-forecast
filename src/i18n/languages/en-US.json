@@ -36,6 +36,10 @@
       "uploadImageFirst": "Please upload images before submitting analysis!",
       "selectDateFirst": "Please select a date for the first image!"
     },
+    "notice": {
+      "desktopOnlyTitle": "Please use Desktop",
+      "desktopOnlyDesc": "This feature requires a larger screen to display complex data visualizations. Please use a desktop browser for the best experience."
+    },
     "toast": {
       "success": "Success",
       "error": "Error"

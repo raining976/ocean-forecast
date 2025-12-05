@@ -15,7 +15,7 @@
       <section style="margin: 10px 0;">
         <b-field :label="predictionType === 'monthly' ? t('forecastTest.selectMonthStart') : t('forecastTest.selectDateStart')">
           <b-datepicker :type="predictionType === 'monthly' ? 'month' : undefined" @update:modelValue="formatDate"
-            size="is-small" style="width: 330px;" :placeholder="predictionType === 'monthly' ? t('common.placeholder.selectMonth') : t('common.placeholder.selectDate')"
+            size="is-small" style="max-width: 330px;" :placeholder="predictionType === 'monthly' ? t('common.placeholder.selectMonth') : t('common.placeholder.selectDate')"
             trap-focus></b-datepicker>
         </b-field>
       </section>
@@ -387,5 +387,18 @@ $container-height: 530px;
 
   }
 
+}
+
+
+@media screen and (max-width: 768px) {
+  .forecastTestContainer{
+    flex-direction: column;
+    height: auto;
+
+    .formContainer, .resultContainer {
+      width: 85%;
+      margin: 10px auto;
+    }
+  }
 }
 </style>
