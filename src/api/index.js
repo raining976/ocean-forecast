@@ -230,3 +230,20 @@ export async function get_dynamic_analysis_result(task_id) {
     }
 }
 
+/**
+ * 获取逐日预测的瓦片结果 以日期列表的形式返回 使用时只需替换到对应的路径即可
+ */
+export async function get_daily_realtime_tiles() {
+    try {
+        const ASSET_URL = import.meta.env.VITE_TILES_URL
+        const response = await getWithoutToast('/api/realtime/day/tiles')
+        const tilesList = response.data.result_date_list.map(item => {
+            return { path: ASSET_URL + item + '/{z}/{x}/{y}.png', date: item }
+        })
+        // console.log('tilesList',tilesList)
+        return tilesList
+    } catch (error) {
+        console.error('Error fetching daily realtime tiles:', error)
+        throw error
+    }
+}

@@ -12,7 +12,7 @@
                 <b-field>
                     <b-slider @change="sliderChange" v-model="currentIndex" :min="0"
                         :max="props.fetchedUrls.length || 14" ticks>
-                        <template v-for="val, index in props.fetchedUrls.length" :key="val" >
+                        <template v-for="val, index in props.fetchedUrls.length" :key="val">
                             <b-slider-tick :value="val" class="desktop-only"> {{ sliderHint[index] }}</b-slider-tick>
                         </template>
                     </b-slider>
@@ -171,21 +171,29 @@ const waitForReadyWithTimeout = (p, timeout = 5000) => {
     });
 };
 
+// 创建默认底图 provider
+const createBaseProvider = () => {
+    if (props.dateType === 'monthly') {
+        return new Cesium.SingleTileImageryProvider({
+            url: props.defaultImageUrl,
+            rectangle: Cesium.Rectangle.fromDegrees(...props.initialCoords)
+        })
+    } else return new Cesium.UrlTemplateImageryProvider({
+        url: 'https://webst02.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
+        minimumLevel: 0,
+        maximumLevel: 7,
+    });
+};
+
 
 // 初始化球体 
 // 在前x张图预加载完成之后，初始化球体
 // 包括创建实例，贴默认图，定位
 const initCesium = async () => {
-    // 在cesium申请的token
-    Cesium.Ion.defaultAccessToken = undefined
+    const baseProvider = createBaseProvider()
 
-    const provider = new Cesium.SingleTileImageryProvider({
-        url: props.defaultImageUrl,
-        rectangle: Cesium.Rectangle.fromDegrees(...props.initialCoords)
-    })
-
-    // 创建 viewer，不自动创建默认影像提供者
-    // 为了隐藏左下角的 Cesium credit 链接，创建一个不可见的 creditContainer 并在组件卸载时移除，避免内存泄漏
+    // // 创建 viewer，不自动创建默认影像提供者
+    // // 为了隐藏左下角的 Cesium credit 链接，创建一个不可见的 creditContainer 并在组件卸载时移除，避免内存泄漏
     if (!_creditEl) {
         _creditEl = document.createElement('div');
         // 隐藏并放到 body 中，这样 Cesium 会写入 credit 内容到该元素，但用户不可见
@@ -210,8 +218,7 @@ const initCesium = async () => {
         baseLayerPicker: false,
         navigationHelpButton: false,
         fullscreenButton: false,
-        baseLayer: new Cesium.ImageryLayer(provider),
-        // baseLayerProvider: provider,
+        baseLayer: new Cesium.ImageryLayer(baseProvider),
         creditContainer: _creditEl
     })
 
@@ -231,71 +238,33 @@ const initCesium = async () => {
                 // 开始播放
                 startPlaying()
 
-
             });
-
             // 别忘了移除监听器
             tileLoadListener();
         }
     });
-
-    // 在北极点创建一个不可见的实体作为我们的“锚点”
-    const northPoleEntity = viewer.value.entities.add({
-        // 位置：经度0, 纬度90 (北极点), 高度0
-        position: Cesium.Cartesian3.fromDegrees(0, 90, 0),
-        // 我们不给这个实体任何外观（如 point, billboard 等），所以它在场景中是不可见的
-        description: 'North Pole Anchor'
-    });
-
-
-    // 将 Viewer 的相机设置为追踪这个实体
-    // 这是实现“锁定”效果的关键。一旦设置，相机将始终朝向这个实体。
-    viewer.value.trackedEntity = northPoleEntity;
-
-
-    // 配置相机控制器
-    const cameraController = viewer.value.scene.screenSpaceCameraController;
-
-    // (a) 禁用倾斜(Tilt)功能。
-    // 这样用户（例如通过按住中键或Ctrl+左键拖动）就无法改变相机的俯仰角，
-    // 从而保持一个稳定的、类似2D地图的上帝视角。
-    cameraController.enableTilt = true;
-
-    // (b) 滚轮只用于缩放 (Zoom)。这是默认行为，我们确保它开启。
-    cameraController.enableZoom = true;
-
-    // (c) 鼠标拖动用于旋转 (Rotate)。这也是默认行为，我们确保它开启。
-    cameraController.enableRotate = true;
-
-
-
-    // (d) [关键] 再次应用约束轴，从根本上解决滚轮缩放时在极点产生的旋转问题。
-    // 即使在追踪模式下，这个设置依然至关重要。
-    cameraController.constrainedAxis = Cesium.Cartesian3.UNIT_Z;
 
 
     // 记录默认底图 layer 引用，供后续 ready 等待使用
     try { baseLayer.value = viewer.value.imageryLayers.get(0); } catch (e) { baseLayer.value = null }
 
     try {
-        // 使用 flyTo 实现从高处飞向北极并旋转的动画
-        const startHeight = 30000000; // 起始高度
-        const endHeight = 15000000; // 结束高度
-        const startPos = Cesium.Cartesian3.fromDegrees(0, 89.5, startHeight);
-        const destination = Cesium.Cartesian3.fromDegrees(0, 90, endHeight);
+        // 1. 限制最近距离 (对应最大 Zoom Level)
+        // 设置为 250,000 米，约等于 Level 7
+        viewer.value.scene.screenSpaceCameraController.minimumZoomDistance = 250000
 
-        // 先设置瞬时到起始位置（不动画），再执行 flyTo
-        viewer.value.camera.setView({ destination: startPos });
-
-        await viewer.value.camera.flyTo({
-            destination: destination,
+        // 2. 限制最远距离 (对应最小 Zoom Level)
+        // 防止用户缩小到看不见地球，设置为 20,000,000 米
+        viewer.value.scene.screenSpaceCameraController.maximumZoomDistance = 20000000
+        // 飞向北极
+        viewer.value.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(0.0, 90.0, 8000000.0),
             orientation: {
                 heading: 0.0,
-                pitch: -Math.PI / 2,
-                roll: 0.0
+                pitch: -Cesium.Math.PI_OVER_TWO,
+                roll: 0.0,
             },
-            duration: 2.0,
-            easingFunction: Cesium.EasingFunction.QUADRATIC_IN_OUT
+            duration: 2,
         })
     } catch (e) {
         // ignore
@@ -322,10 +291,11 @@ const updateToIndex = (index) => {
     let layer;
     try {
         layer = imageryLayers.value.addImageryProvider(
-            new Cesium.SingleTileImageryProvider({
-                url: imageUrl,
-                rectangle: Cesium.Rectangle.fromDegrees(-180.0, -90.0, 180.0, 90.0)
-            })
+            // new Cesium.SingleTileImageryProvider({
+            //     url: imageUrl,
+            //     rectangle: Cesium.Rectangle.fromDegrees(-180.0, -90.0, 180.0, 90.0)
+            // })
+            createTileProvider(imageUrl)
         );
     } catch (e) {
         console.warn('addImageryProvider error', e)
@@ -334,6 +304,28 @@ const updateToIndex = (index) => {
 
     return layer;
 }
+
+const createTileProvider = (urlTemplate) => {
+    if (props.dateType === 'monthly') {
+        return new Cesium.SingleTileImageryProvider({
+            url: urlTemplate,
+            rectangle: Cesium.Rectangle.fromDegrees(-180.0, -90.0, 180.0, 90.0)
+        })
+    } else
+        return new Cesium.UrlTemplateImageryProvider({
+            url: urlTemplate,
+            tilingScheme: new Cesium.GeographicTilingScheme(),
+            minimumLevel: 0,
+            maximumLevel: 6,
+            hasAlphaChannel: true,
+            rectangle: Cesium.Rectangle.fromDegrees(
+                -180, // 西
+                30, // 南
+                180, // 东
+                90, // 北
+            ),
+        });
+};
 
 
 // ---------- 控件函数 ------------

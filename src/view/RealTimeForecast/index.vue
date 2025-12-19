@@ -14,7 +14,7 @@
   </div>
 </template>
 <script setup>
-import { get_monthly_real_time_forecast, get_daily_real_time_forecast } from '@/api'
+import { get_monthly_real_time_forecast, get_daily_real_time_forecast, get_daily_realtime_tiles } from '@/api'
 import { useRTForecastStore } from '@/store'
 import { watch, ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { createImagePreloader } from '@/utils/imagePreloader'
@@ -44,18 +44,20 @@ function handleProgress(index, status, name) {
 // 获取按日的图片列表并启动 preloader
 const getDailyImages = async () => {
   try {
-    const res = await get_daily_real_time_forecast();
+    const res = await get_daily_realtime_tiles()
+    // const res = await get_daily_real_time_forecast();
     fetchedDailyUrls.value = res || [];
-    const urls = (res || []).map(item => item.path || item.url || item);
-    dailyPreloader = createImagePreloader(urls, {
-      concurrency: 3,
-      initialBatch: 3,
-      onProgress: handleProgress,
-      name: 'daily'
-    });
+    // const urls = (res || []).map(item => item.path || item.url || item);
+    // dailyPreloader = createImagePreloader(urls, {
+    //   concurrency: 3,
+    //   initialBatch: 3,
+    //   onProgress: handleProgress,
+    //   name: 'daily'
+    // });
+
 
     // 先加载 initial batch，等待它完成再继续（用于首次渲染）
-    await dailyPreloader.loadInitial();
+    // await dailyPreloader.loadInitial();
     // 如果当前是 daily 视图，确保 curImagesUrl 更新到已就绪的 daily 列表
     if (rtForecastStore.dateType === 'daily') curImagesUrl.value = fetchedDailyUrls.value;
   } catch (err) {
@@ -103,10 +105,10 @@ onMounted(async () => {
   // 并行发起两个请求，但我们会等待 daily 的初始批完成以供首屏渲染
   await Promise.allSettled([getDailyImages(), getMonthlyImages()]);
 
-  // 将 daily 的剩余图片在后台继续加载
-  if (dailyPreloader) {
-    dailyPreloader.loadAll().then(() => console.info('daily preload finished'));
-  }
+  // // 将 daily 的剩余图片在后台继续加载
+  // if (dailyPreloader) {
+  //   dailyPreloader.loadAll().then(() => console.info('daily preload finished'));
+  // }
 
   // 尝试初始化子组件（如果子组件提供 initCesium）
   if (sphereRef.value && typeof sphereRef.value.initCesium === 'function') {
