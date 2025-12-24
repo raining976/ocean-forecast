@@ -34,7 +34,7 @@ const props = defineProps({
     initialCoords: { type: Array, default: () => [-180, -90, 180, 90] },
     autoStart: { type: Boolean, default: true },
     isPlaying: { type: Boolean, default: true },
-    switchInterval: { type: Number, default: 1500 },
+    switchInterval: { type: Number, default: 5000 },
     fetchedUrls: { type: Array, default: () => [] },
     dateType: { type: String, default: 'daily' }, // daily or monthly
     defaultImageUrl: { type: String, default: defaultImageUrl }
