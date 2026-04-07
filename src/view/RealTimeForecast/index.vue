@@ -105,7 +105,7 @@ onMounted(async () => {
   // 并行发起两个请求，但我们会等待 daily 的初始批完成以供首屏渲染
   await Promise.allSettled([getDailyImages(), getMonthlyImages()]);
 
-  // // 将 daily 的剩余图片在后台继续加载
+  // // 将 daily 的剩余图片在后台继续加载 这里换成了瓦片 就不需要提前加载了 因为加载逻辑不在我们的组件
   // if (dailyPreloader) {
   //   dailyPreloader.loadAll().then(() => console.info('daily preload finished'));
   // }

@@ -51,8 +51,9 @@ import defaultImageUrl from "@/assets/images/basemap_8k.webp"
 import { watch } from 'vue';
 
 const viewer = ref(null) // 实例
-const switchTimer = { id: null } // 定时器句柄
+const playState = { active: false, token: 0 } // 串行播放状态
 let _creditEl = null
+const MIN_SWITCH_INTERVAL = 2000 // 最短切换时间 2s
 
 const currentIndex = ref(0)
 const baseLayer = ref(null) // 默认图层
@@ -61,40 +62,91 @@ const imageryLayers = ref(null) // 图层集合
 
 
 // --------- 控制是否自动播放 -----------
+// 等待当前场景瓦片加载到空闲，避免当前图层未加载完成就切下一张
+const waitForTilesIdle = (timeout = 20000, quietMs = 250) => {
+    if (!viewer.value || !viewer.value.scene || !viewer.value.scene.globe) return Promise.resolve()
+
+    return new Promise((resolve) => {
+        let finished = false
+        let quietTimer = null
+        let timeoutTimer = null
+
+        const done = () => {
+            if (finished) return
+            finished = true
+            if (quietTimer) clearTimeout(quietTimer)
+            if (timeoutTimer) clearTimeout(timeoutTimer)
+            try { removeListener && removeListener() } catch (e) { /* ignore */ }
+            resolve()
+        }
+
+        const onProgress = (pendingRequests) => {
+            if (finished) return
+            if (pendingRequests > 0) {
+                if (quietTimer) {
+                    clearTimeout(quietTimer)
+                    quietTimer = null
+                }
+                return
+            }
+
+            if (quietTimer) clearTimeout(quietTimer)
+            quietTimer = setTimeout(done, quietMs)
+        }
+
+        const removeListener = viewer.value.scene.globe.tileLoadProgressEvent.addEventListener(onProgress)
+        timeoutTimer = setTimeout(done, timeout)
+
+        // 有些情况下事件不会立刻触发，这里主动检查一次
+        requestAnimationFrame(() => onProgress(0))
+    })
+}
+
 // 开始播放
 const startPlaying = () => {
-    if (!switchTimer.id) {
-        switchTimer.id = setInterval(switchToNextImage, props.switchInterval)
-    }
+    if (playState.active) return
+    playState.active = true
+    const currentToken = ++playState.token
+
+    // 串行循环：上一张加载完成后再切下一张
+    ; (async () => {
+        while (playState.active && currentToken === playState.token) {
+            const switched = await switchToNextImage()
+            if (!switched) break
+            if (!playState.active || currentToken !== playState.token) break
+        }
+    })()
 }
 
 // 停止播放
 const stopPlaying = () => {
-    if (switchTimer.id) {
-        clearInterval(switchTimer.id)
-        switchTimer.id = null
-    }
+    playState.active = false
+    playState.token += 1
 }
 
 // 重新播放
-const restart = () => {
+const restart = async () => {
     stopPlaying()
     currentIndex.value = 0
-    switchToNextImage(0)
+    await switchToNextImage(0)
     startPlaying()
 
 }
 
 
 // 切换下一张图
-const switchToNextImage = (targetIndex) => {
+const switchToNextImage = async (targetIndex) => {
+    if (!props.fetchedUrls.length) return false
+
     let nextIndex
     if (targetIndex !== undefined) {
         nextIndex = targetIndex
     } else {
         nextIndex = (currentIndex.value + 1) % props.fetchedUrls.length
     }
-    const nextLayer = updateToIndex(nextIndex % props.fetchedUrls.length)
+    const frameStartAt = Date.now()
+    const nextLayer = await updateToIndex(nextIndex % props.fetchedUrls.length)
+    if (!nextLayer) return false
 
     // 等最新图层的 provider ready 后再移除旧图层，避免闪烁
     const provider = nextLayer && nextLayer.imageryProvider;
@@ -102,41 +154,44 @@ const switchToNextImage = (targetIndex) => {
     // 先隐藏并置透明，等 provider ready 后再淡入显示
     try { nextLayer.alpha = 0; nextLayer.show = false; } catch (e) { /* ignore */ }
 
-    waitForReadyWithTimeout(provider, 5000).then(async (res) => {
+    try {
+        await waitForReadyWithTimeout(provider, 5000)
+    } catch (err) {
+        // provider 未能就绪：仍然继续，后续走瓦片空闲等待兜底
+        console.warn('nextLayer provider not ready, fallback,', err)
+    }
+
+    try {
+        currentIndex.value = nextIndex;
+        nextLayer.show = true;
+        imageryLayers.value.raiseToTop(nextLayer);
+        await animateAlpha(nextLayer, 0, 1, 600);
+
         try {
-            currentIndex.value = nextIndex;
-            nextLayer.show = true;
-            imageryLayers.value.raiseToTop(nextLayer);
-            await animateAlpha(nextLayer, 0, 1, 600);
+            if (currentLayer.value) imageryLayers.value.remove(currentLayer.value, true);
+        } catch (e) { /* ignore */ }
 
-            try {
-                imageryLayers.value.remove(currentLayer.value, true);
-            } catch (e) { /* ignore */ }
+        currentLayer.value = nextLayer;
+    } catch (e) {
+        console.warn('switchToNextImage error during show/animate', e);
+        try { if (currentLayer.value) imageryLayers.value.remove(currentLayer.value, true); } catch (e) { }
+        currentLayer.value = nextLayer;
+        currentIndex.value = nextIndex;
+    }
 
-            currentLayer.value = nextLayer;
-        } catch (e) {
-            console.warn('switchToNextImage error during show/animate', e);
-            try { imageryLayers.value.remove(currentLayer.value, true); } catch (e) { }
-            currentLayer.value = nextLayer;
-            currentIndex.value = nextIndex;
-        }
-    }).catch((err) => {
-        // provider 未能就绪：回退为短延时后切换，避免无限等待
-        console.warn('nextLayer provider not ready, fallback,', err);
-        setTimeout(() => {
-            try {
-                imageryLayers.value.remove(currentLayer.value, true);
-            } catch (e) { /* ignore */ }
-            currentLayer.value = nextLayer;
-            currentIndex.value = nextIndex;
-        }, 100);
-    });
+    // 关键：需同时满足“至少展示2秒”与“瓦片加载到空闲”后才允许切下一张
+    const minStayPromise = new Promise((resolve) => {
+        const rest = Math.max(0, MIN_SWITCH_INTERVAL - (Date.now() - frameStartAt))
+        setTimeout(resolve, rest)
+    })
+    await Promise.all([waitForTilesIdle(20000, 250), minStayPromise])
+    return true
 }
 
 
-const initFirstLayer = () => {
+const initFirstLayer = async () => {
     currentIndex.value = 0
-    currentLayer.value = updateToIndex(currentIndex.value)
+    currentLayer.value = await updateToIndex(currentIndex.value)
 
 }
 
@@ -172,10 +227,9 @@ const waitForReadyWithTimeout = (p, timeout = 5000) => {
 };
 
 // 创建默认底图 provider
-const createBaseProvider = () => {
+const createBaseProvider = async () => {
     if (props.dateType === 'monthly') {
-        return new Cesium.SingleTileImageryProvider({
-            url: props.defaultImageUrl,
+        return await Cesium.SingleTileImageryProvider.fromUrl(props.defaultImageUrl, {
             rectangle: Cesium.Rectangle.fromDegrees(...props.initialCoords)
         })
     } else return new Cesium.UrlTemplateImageryProvider({
@@ -190,7 +244,7 @@ const createBaseProvider = () => {
 // 在前x张图预加载完成之后，初始化球体
 // 包括创建实例，贴默认图，定位
 const initCesium = async () => {
-    const baseProvider = createBaseProvider()
+    const baseProvider = await createBaseProvider()
 
     // // 创建 viewer，不自动创建默认影像提供者
     // // 为了隐藏左下角的 Cesium credit 链接，创建一个不可见的 creditContainer 并在组件卸载时移除，避免内存泄漏
@@ -231,7 +285,6 @@ const initCesium = async () => {
 
             // 使用 requestAnimationFrame 等待下一次绘制
             requestAnimationFrame(function () {
-                // 在这里，我们可以非常有信心地说：
                 // 1. 所有瓦片数据已加载。
                 // 2. 包含这些清晰瓦片的帧已经被绘制到了屏幕上。
                 rtForecastStore.isLoading = false; // 隐藏加载动画
@@ -284,18 +337,16 @@ const initCesium = async () => {
 
 
 // 更新当前图层为目标index图层
-const updateToIndex = (index) => {
+const updateToIndex = async (index) => {
     if (index < 0 || index >= props.fetchedUrls.length) return;
     const item = props.fetchedUrls[index];
     const imageUrl = item.path || item.url || item;
     let layer;
+
     try {
+        const provider = await createTileProvider(imageUrl)
         layer = imageryLayers.value.addImageryProvider(
-            // new Cesium.SingleTileImageryProvider({
-            //     url: imageUrl,
-            //     rectangle: Cesium.Rectangle.fromDegrees(-180.0, -90.0, 180.0, 90.0)
-            // })
-            createTileProvider(imageUrl)
+            provider
         );
     } catch (e) {
         console.warn('addImageryProvider error', e)
@@ -305,10 +356,9 @@ const updateToIndex = (index) => {
     return layer;
 }
 
-const createTileProvider = (urlTemplate) => {
+const createTileProvider = async (urlTemplate) => {
     if (props.dateType === 'monthly') {
-        return new Cesium.SingleTileImageryProvider({
-            url: urlTemplate,
+        return await Cesium.SingleTileImageryProvider.fromUrl(urlTemplate, {
             rectangle: Cesium.Rectangle.fromDegrees(-180.0, -90.0, 180.0, 90.0)
         })
     } else
@@ -329,14 +379,14 @@ const createTileProvider = (urlTemplate) => {
 
 
 // ---------- 控件函数 ------------
-const sliderChange = (v) => {
+const sliderChange = async (v) => {
     if (typeof v !== 'number' || v < 0 || v > props.fetchedUrls.length) return;
     if (!props.isPlaying) {
-        switchToNextImage(v);
+        await switchToNextImage(v);
         return
     };
     stopPlaying()
-    switchToNextImage(v);
+    await switchToNextImage(v);
     startPlaying()
 }
 
@@ -372,11 +422,6 @@ onBeforeUnmount(() => {
             console.warn('destroy viewer error', e)
         }
     }
-    if (switchTimer.id) {
-        clearInterval(switchTimer.id)
-        switchTimer.id = null
-    }
-
     // 移除之前创建的 credit container，防止内存泄漏
     try {
         if (_creditEl && _creditEl.parentNode) {
