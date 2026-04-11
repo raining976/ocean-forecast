@@ -203,10 +203,14 @@ export async function postDynamicAnalysis(formData) {
             end_time: endDate,
             grad_month,
             grad_type,
-            x1: selection.tl.y, // 非常逆天的接口设计 
-            y1: selection.tl.x,
-            x2: selection.br.y,
-            y2: selection.br.x
+            // x1: selection.tl.y, // 非常逆天的接口设计 
+            // y1: selection.tl.x,
+            // x2: selection.br.y,
+            // y2: selection.br.x
+            x1: selection.bl.x,
+            y1: selection.bl.y,
+            x2: selection.tr.x,
+            y2: selection.tr.y
         }
         const response = await post('/api/dynamics/analysis', params)
         return response

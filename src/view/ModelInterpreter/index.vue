@@ -47,6 +47,7 @@
                 :taskList="modelInterpreterStore.taskList"
                 :resultList="modelInterpreterStore.resultList"
                 :modalTitle="t('modelInterpreter.resultModalTitle')"
+                :maskImage='resultMask'
             />
         </div>
     </div>
@@ -59,6 +60,8 @@ import { openToast } from "@/utils/toast"
 import { useModelInterpreterStore } from "@/store"
 import { useI18n } from 'vue-i18n'
 import NoticeToWeb from '@/components/NoticeToWeb/index.vue'
+
+import resultMask from "@/assets/images/result_mask.png"
 
 const { t, locale } = useI18n()
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL 

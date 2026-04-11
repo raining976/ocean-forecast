@@ -51,6 +51,7 @@
   "nav": {
     "realTimeForecast": "Real-time Forecast",
     "forecastTest": "Forecast Test",
+    "routePlanning": "Route Planning",
     "modelInterpreter": "Daily Model Interpretability",
     "dynamicAnalysis": "Monthly Dynamics Analysis",
     "titleZh": "“Hanbing” Foundation Model for Arctic Sea Ice Spatio-Temporal Multi-Scale Forecasting",
@@ -85,7 +86,8 @@
     "seaIceArea": "Sea Ice Area",
     "seaIceVariation": "Sea Ice Variation",
     "tooltip": "Cache last 3 dynamic analysis records",
-    "modalTitle": "Daily Dynamic Analysis Result Heatmap"
+    "modalTitle": "Daily Dynamic Analysis Result Heatmap",
+    "tooltip":"The valid date range is from 1988 to 2022, with a minimum period of 12 months."
   },
   "forecastTest": {
     "title": "Upload Images for Prediction",
@@ -100,6 +102,27 @@
     "dailyForecast": "Daily Forecast",
     "monthlyForecast": "Monthly Forecast",
     "modalTitle": "Model Forecast Test Results"
+  },
+  "routePlanning": {
+    "title": "Predicted Route Planning",
+    "selectDate": "Select a date in the next 14 days",
+    "datePlaceholder": "Select date",
+    "startPoint": "Select Start Point",
+    "endPoint": "Select End Point",
+    "resultTitle": "Model Predicted Route",
+    "emptyHint": "After submission, the model-predicted route will be rendered on the globe.",
+    "summary": "Date: {date}, Start: {start}, End: {end}",
+    "submitSuccess": "Route planning submitted. Predicted route rendering has started.",
+    "points": {
+      "barrow": "Barrow Area",
+      "beaufort": "Beaufort Sea",
+      "svalbard": "Svalbard",
+      "greenland": "Greenland Sea"
+    },
+    "errors": {
+      "dateRequired": "Please select a day within the next 14 days.",
+      "pointsMustDiffer": "Start point and end point must be different."
+    }
   },
   "modelInterpreter": {
     "dataRange": "Data Range",

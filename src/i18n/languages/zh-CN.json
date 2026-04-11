@@ -47,6 +47,7 @@
   "nav": {
     "realTimeForecast": "实时预报",
     "forecastTest": "预报测试",
+    "routePlanning": "航线规划",
     "modelInterpreter": "逐日模型可解释性",
     "dynamicAnalysis": "逐月动力学分析",
     "titleZh": "“寒冰”北极海冰时空多尺度预报基础模型",
@@ -81,7 +82,8 @@
     "seaIceArea": "海冰面积",
     "seaIceVariation": "海冰变化",
     "tooltip": "缓存最近三条动态分析记录",
-    "modalTitle": "逐日动态分析结果热图"
+    "modalTitle": "逐日动态分析结果热图",
+    "tooltip":"日期有效范围为1988-2022年,前后范围最短为12个月"
   },
   "forecastTest": {
     "title": "上传图片进行预测",
@@ -96,6 +98,27 @@
     "dailyForecast": "逐日预测",
     "monthlyForecast": "逐月预测",
     "modalTitle": "模型预报测试结果"
+  },
+  "routePlanning": {
+    "title": "预测航线规划",
+    "selectDate": "选择未来14天中的日期",
+    "datePlaceholder": "点击选择日期",
+    "startPoint": "选择起始点",
+    "endPoint": "选择终点",
+    "resultTitle": "模型预测航线",
+    "emptyHint": "提交后将在右侧地球上展示模型预测航线。",
+    "summary": "日期: {date}，起点: {start}，终点: {end}",
+    "submitSuccess": "航线规划提交成功，已开始渲染预测航线。",
+    "points": {
+      "barrow": "巴罗海域",
+      "beaufort": "波弗特海",
+      "svalbard": "斯瓦尔巴群岛",
+      "greenland": "格陵兰海"
+    },
+    "errors": {
+      "dateRequired": "请先选择未来14天中的某一天。",
+      "pointsMustDiffer": "起始点和终点不能相同。"
+    }
   },
   "modelInterpreter": {
     "dataRange": "数据范围",

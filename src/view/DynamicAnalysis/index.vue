@@ -5,11 +5,13 @@
   <div class="DynamicAnalysisContainer" :class="{ 'is-en': locale === 'en-US' }">
     <div class="formContainer">
       <section class="formFieldSection">
-        <b-field :label="t('dynamicAnalysis.dataRange')" horizontal class="datepickerBox" :type="dateError ? 'is-danger' : ''"
-          :message="dateError">
-          <b-datepicker :placeholder="t('common.placeholder.select')" range style="width: 230px;" size="is-small" @range-end="rangeEnd"
-            @range-start="rangeStart" type="month">
+        <b-field :label="t('dynamicAnalysis.dataRange')" horizontal class="datepickerBox"
+          :type="dateError ? 'is-danger' : ''" :message="dateError">
+          <b-datepicker :placeholder="t('common.placeholder.select')" range style="width: 230px;" size="is-small"
+            @range-end="rangeEnd" @range-start="rangeStart" type="month" :max-date="maxDate">
           </b-datepicker>
+          <b-tooltip style="margin: 0 10px; line-height: 30px;" :label="t('dynamicAnalysis.tooltip')"
+                        position="is-right" type="is-dark"><vue-fontawesome icon="circle-exclamation" /></b-tooltip>
         </b-field>
         <b-field :label="t('dynamicAnalysis.forecastLeadTime')" horizontal class="advanceDate">
           <b-numberinput size="is-small" type="is-dark" v-model.number="pred_gap" min="1"
@@ -22,7 +24,7 @@
         </b-field>
 
         <b-field :label="t('dynamicAnalysis.analysisRange')" horizontal>
-          <image-selector :image-url="imgUrl" @selection-string="onSelection" :width="432" :height="432"  />
+          <image-selector :image-url="imgUrl" @selection-string="onSelection" :width="432" :height="432" />
         </b-field>
 
         <b-field :label="t('dynamicAnalysis.analysisTarget')" horizontal class="gradType">
@@ -35,13 +37,14 @@
           </b-radio>
         </b-field>
 
-        <b-field horizontal><b-button type="is-dark" size="is-small" style="margin: 10px 0;"
-            @click="submitForm">{{ t('common.button.submitAnalysis') }}</b-button></b-field>
+        <b-field horizontal><b-button type="is-dark" size="is-small" style="margin: 10px 0;" @click="submitForm">{{
+          t('common.button.submitAnalysis') }}</b-button></b-field>
       </section>
     </div>
     <div class="resultWrapper">
-      <ResultDisplay :tooltip="t('dynamicAnalysis.tooltip')" :emptyMessage="t('common.message.submitToView')" :taskList="dynamicAnalysisStore.taskList"
-        :resultList="dynamicAnalysisStore.resultList" :modalTitle="t('dynamicAnalysis.modalTitle')" />
+      <ResultDisplay :tooltip="t('dynamicAnalysis.tooltip')" :emptyMessage="t('common.message.submitToView')"
+        :taskList="dynamicAnalysisStore.taskList" :resultList="dynamicAnalysisStore.resultList"
+        :modalTitle="t('dynamicAnalysis.modalTitle')" :maskImage="resultMask" />
     </div>
   </div>
 </template>
@@ -52,6 +55,8 @@ import { useDynamicAnalysisStore } from "@/store"
 import { useI18n } from 'vue-i18n'
 
 import { openToast } from "@/utils/toast"
+
+import resultMask from "@/assets/images/dynamic_result_mask.png"
 
 const { t, locale } = useI18n()
 const dynamicAnalysisStore = useDynamicAnalysisStore();
@@ -70,6 +75,7 @@ const pred_gap = ref(1);
 
 const dateRange = ref([null, null]);
 const dateError = ref('');
+const maxDate = new Date(2022, 11, 31);
 
 // 时间格式化函数 格式化为 yyyy-mm的格式
 const formatToYearMonth = (date) => {
@@ -89,6 +95,13 @@ const rangeStart = (value) => {
     dateRange.value[0] = null;
     return;
   }
+  if (startDateObj > maxDate) {
+    dateError.value = '时间选择最晚限制到2022年12月';
+    dateRange.value = [null, null];
+    form.startDate = null;
+    form.endDate = null;
+    return;
+  }
   dateRange.value[0] = startDateObj;
 }
 
@@ -96,6 +109,24 @@ const rangeEnd = (value) => {
   const startDate = dateRange.value[0];
   const endDate = value ? new Date(value) : null;
   if (!startDate || !endDate) return;
+
+  if (endDate > maxDate) {
+    dateError.value = '时间选择最晚限制到2022年12月';
+    dateRange.value = [null, null];
+    form.startDate = null;
+    form.endDate = null;
+    return;
+  }
+
+  const monthSpan = (endDate.getFullYear() - startDate.getFullYear()) * 12
+    + (endDate.getMonth() - startDate.getMonth()) + 1;
+  if (monthSpan < 12) {
+    dateError.value = '动力学分析时间窗口过短，至少需要 12 个月';
+    dateRange.value = [null, null];
+    form.startDate = null;
+    form.endDate = null;
+    return;
+  }
 
   dateRange.value = [startDate, endDate];
   form.startDate = startDate;
@@ -134,8 +165,12 @@ const submitForm = () => {
   formData.startDate = formatToYearMonth(form.startDate);
   formData.endDate = formatToYearMonth(form.endDate);
   formData.grad_month = targetMonth.value.split('-')[1];
-  
   postDynamicAnalysis(formData).then(res => {
+    if (!res.data) {
+      openToast(res.message || 'Submission failed');
+      console.error('res.message', res.message)
+      return;
+    }
     const { task_id } = res.data
     const task = {
       task_id,
@@ -174,12 +209,13 @@ $container-height: 650px;
     height: calc($container-height - 40px);
     background-color: var(--bulma-scheme-main);
 
-    .formFieldSection{
+    .formFieldSection {
       height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
+
     &:deep(.field.is-horizontal) {
       margin-bottom: 8px;
     }
@@ -223,15 +259,16 @@ $container-height: 650px;
 
 }
 
-.noticeContainer{
+.noticeContainer {
   display: none;
 }
 
 @media screen and (max-width: 768px) {
-  .DynamicAnalysisContainer{
+  .DynamicAnalysisContainer {
     display: none;
   }
-  .noticeContainer{
+
+  .noticeContainer {
     display: block;
   }
 }

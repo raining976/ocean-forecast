@@ -29,7 +29,7 @@
                     </div>
                     <!-- 结果遮罩层，点击查看详情 -->
                     <div class="resultMask" @click="showModal(idx)">
-                        <img src="@/assets/images/result_mask.png" alt="">
+                        <img class="maskImg" :src="displayMaskImage" alt="">
                         <span class="iconBox" v-if="resultList[idx]?.status === '完成'">
                             <vue-fontawesome class="eyeIcon" icon="eye" />
                         </span>
@@ -69,6 +69,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import defaultMaskImage from '@/assets/images/dynamic_result_mask.png'
 
 const { t } = useI18n()
 
@@ -105,6 +106,11 @@ const props = defineProps({
     modalTitle: {
         type: String,
         default: ''
+    },
+    // 结果遮罩图
+    maskImage: {
+        type: String,
+        default: ''
     }
 })
 
@@ -112,6 +118,7 @@ const displayTitle = computed(() => props.title || t('components.resultDisplay.t
 const displayTooltip = computed(() => props.tooltip || t('components.resultDisplay.tooltip'))
 const displayEmptyMessage = computed(() => props.emptyMessage || t('common.message.noResult'))
 const displayModalTitle = computed(() => props.modalTitle || t('components.resultDisplay.modalTitle'))
+const displayMaskImage = computed(() => props.maskImage || defaultMaskImage)
 
 const websiteUrl = import.meta.env.VITE_WEBSITE_URL
 
@@ -192,7 +199,9 @@ $container-height: 680px;
                 margin: 3px 0;
                 cursor: pointer;
                 position: relative; // 确保图标绝对定位相对于此元素
-
+                .maskImg{
+                    height: 100px;
+                }
                 &:hover .eyeIcon {
                     opacity: 1;
                 }
