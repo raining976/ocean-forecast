@@ -26,6 +26,11 @@ const routes = [
         path:'/dynamic-analysis',
         name: 'DynamicAnalysis',
         component: () => import('../view/DynamicAnalysis/index.vue')
+    },
+    {
+        path:'/route-planning',
+        name: 'RoutePlanning',
+        component: () => import('../view/RoutePlanning/index.vue')
     }
 
 ]

@@ -112,7 +112,45 @@
     "resultTitle": "Model Predicted Route",
     "emptyHint": "After submission, the model-predicted route will be rendered on the globe.",
     "summary": "Date: {date}, Start: {start}, End: {end}",
+    "taskSummary": "Current Task #{taskId}, Status: {status}",
     "submitSuccess": "Route planning submitted. Predicted route rendering has started.",
+    "loadSuccess": "Task result loaded onto the globe.",
+    "taskListTitle": "Result List",
+    "taskListEmpty": "No task records yet. Submit a task to track progress here.",
+    "loadResult": "Load to Globe",
+    "taskStatus": {
+      "inProgress": "Processing",
+      "completed": "Completed",
+      "failed": "Failed",
+      "timeout": "Timeout"
+    },
+    "meta": {
+      "taskId": "Task ID",
+      "createdAt": "Submitted At",
+      "status": "Progress",
+      "route": "Route",
+      "startPort": "Start Port",
+      "endPort": "End Port",
+      "departureDate": "Departure Date",
+      "etaHours": "Estimated Travel Time",
+      "etaHoursValue": "{value} hours",
+      "distanceNm": "Route Distance",
+      "distanceNmValue": "{value} nm",
+      "seaIceImage": "Sea Ice Map for Date",
+      "error": "Error"
+    },
+    "portLabels": {
+      "Arkhangelsk": "Arkhangelsk",
+      "Dikson": "Dikson",
+      "Longyearbyen": "Longyearbyen",
+      "Murmansk": "Murmansk",
+      "Narvik": "Narvik",
+      "Pevek": "Pevek",
+      "Sabetta": "Sabetta",
+      "Tiksi": "Tiksi",
+      "Tromso": "Tromso",
+      "Vladivostok": "Vladivostok"
+    },
     "points": {
       "barrow": "Barrow Area",
       "beaufort": "Beaufort Sea",
@@ -121,7 +159,8 @@
     },
     "errors": {
       "dateRequired": "Please select a day within the next 14 days.",
-      "pointsMustDiffer": "Start point and end point must be different."
+      "pointsMustDiffer": "Start point and end point must be different.",
+      "noPortsAvailable": "No available ports right now. Please try again later."
     }
   },
   "modelInterpreter": {

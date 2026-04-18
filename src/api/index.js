@@ -251,3 +251,52 @@ export async function get_daily_realtime_tiles() {
         throw error
     }
 }
+
+/**
+ * 获取航线预测的所有港口
+ */
+export async function get_route_ports() {
+    try {
+        const response = await getWithoutToast('/api/route/ports')
+        return response.data.ports
+    } catch (error) {
+        console.error('Error fetching route ports:', error)
+        throw error
+    }
+}
+
+/**
+ * 提交航线规划任务
+ * @param {Object} params
+ * @param {string} params.start_port 起始港口名称
+ * @param {string} params.end_port 终点港口名称
+ */
+export async function post_route_plan_task(params) {
+    try {
+        const { start_port, end_port } = params
+        const response = await post('/api/route/plan', {
+            start_port,
+            end_port
+        })
+        return response
+    } catch (error) {
+        console.error('Error creating route plan task:', error)
+        throw error
+    }
+}
+
+/**
+ * 获取航线规划任务结果
+ * @param {number|string} task_id 任务ID
+ */
+export async function get_route_plan_result(task_id) {
+    try {
+        const response = await getWithoutToast(`/api/route/plan/${task_id}`)
+        return response
+    } catch (error) {
+        console.error('Error fetching route plan result:', error)
+        throw error
+    }
+}
+
+

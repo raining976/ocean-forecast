@@ -84,6 +84,10 @@ const leftList = computed(() => [
         name: t('nav.forecastTest'),
         link: '/forecast-test',
     },
+    {
+        name: t('nav.routePlanning'),
+        link:"/route-planning"
+    }
 ]);
 
 // 右边的list

@@ -106,9 +106,47 @@
     "startPoint": "选择起始点",
     "endPoint": "选择终点",
     "resultTitle": "模型预测航线",
-    "emptyHint": "提交后将在右侧地球上展示模型预测航线。",
+    "emptyHint": "提交后将在地球模型上展示模型预测航线。",
     "summary": "日期: {date}，起点: {start}，终点: {end}",
+    "taskSummary": "当前任务 #{taskId}，状态: {status}",
     "submitSuccess": "航线规划提交成功，已开始渲染预测航线。",
+    "loadSuccess": "已加载任务结果到地球模型。",
+    "taskListTitle": "结果列表",
+    "taskListEmpty": "暂无任务记录。提交任务后可在此查看处理进度。",
+    "loadResult": "加载到地球",
+    "taskStatus": {
+      "inProgress": "处理中",
+      "completed": "成功",
+      "failed": "失败",
+      "timeout": "超时"
+    },
+    "meta": {
+      "taskId": "任务ID",
+      "createdAt": "提交时间",
+      "status": "处理进度",
+      "route": "航线",
+      "startPort": "起点港口",
+      "endPort": "终点港口",
+      "departureDate": "出发日期",
+      "etaHours": "预计航行时间",
+      "etaHoursValue": "{value} 小时",
+      "distanceNm": "航线里程",
+      "distanceNmValue": "{value} 海里",
+      "seaIceImage": "对应日期海冰图",
+      "error": "错误信息"
+    },
+    "portLabels": {
+      "Arkhangelsk": "阿尔汉格尔斯克",
+      "Dikson": "迪克森",
+      "Longyearbyen": "朗伊尔城",
+      "Murmansk": "摩尔曼斯克",
+      "Narvik": "纳尔维克",
+      "Pevek": "佩韦克",
+      "Sabetta": "萨别塔",
+      "Tiksi": "季克西",
+      "Tromso": "特罗姆瑟",
+      "Vladivostok": "符拉迪沃斯托克"
+    },
     "points": {
       "barrow": "巴罗海域",
       "beaufort": "波弗特海",
@@ -117,7 +155,8 @@
     },
     "errors": {
       "dateRequired": "请先选择未来14天中的某一天。",
-      "pointsMustDiffer": "起始点和终点不能相同。"
+      "pointsMustDiffer": "起始点和终点不能相同。",
+      "noPortsAvailable": "当前没有可用港口，请稍后重试。"
     }
   },
   "modelInterpreter": {
