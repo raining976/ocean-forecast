@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useDynamicAnalysisStore } from "@/store"
 import { useI18n } from 'vue-i18n'
 
@@ -181,6 +181,16 @@ const submitForm = () => {
   })
 
 }
+
+onMounted(() => {
+  // 页面加载时恢复未完成任务的轮询
+  dynamicAnalysisStore.pollAllTaskStatus();
+});
+
+onUnmounted(() => {
+  // 页面卸载时清理定时器，避免后台持续轮询
+  dynamicAnalysisStore.clearAllTimers();
+});
 
 
 </script>
