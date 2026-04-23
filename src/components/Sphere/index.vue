@@ -150,13 +150,13 @@ const startPlaying = () => {
     playState.active = true
     const currentToken = ++playState.token
 
-    ; (async () => {
-        while (playState.active && currentToken === playState.token) {
-            const switched = await switchToNextImage()
-            if (!switched) break
-            if (!playState.active || currentToken !== playState.token) break
-        }
-    })()
+        ; (async () => {
+            while (playState.active && currentToken === playState.token) {
+                const switched = await switchToNextImage()
+                if (!switched) break
+                if (!playState.active || currentToken !== playState.token) break
+            }
+        })()
 }
 
 // 停止播放
@@ -276,9 +276,14 @@ const waitForReadyWithTimeout = (p, timeout = 5000) => {
 // 创建默认底图 provider
 const createBaseProvider = async () => {
     if (isSingleImageMode.value) {
-        return await Cesium.SingleTileImageryProvider.fromUrl(props.defaultImageUrl, {
-            rectangle: getRectangleFromCoords()
-        })
+        return new Cesium.UrlTemplateImageryProvider({
+            url: 'https://webst02.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
+            minimumLevel: 0,
+            maximumLevel: 7,
+        });
+        // return await Cesium.SingleTileImageryProvider.fromUrl(props.defaultImageUrl, {
+        //     rectangle: getRectangleFromCoords()
+        // })
     }
 
     return new Cesium.UrlTemplateImageryProvider({
@@ -371,7 +376,7 @@ const updateToIndex = async (index) => {
 const createFrameProvider = async (item, urlTemplate) => {
     if (isSingleImageMode.value) {
         return await Cesium.SingleTileImageryProvider.fromUrl(urlTemplate, {
-             rectangle: getFrameRectangle(item)
+            rectangle: getFrameRectangle(item)
         })
     }
 
