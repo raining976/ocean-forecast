@@ -30,13 +30,17 @@ import * as Cesium from 'cesium'
 import { useRTForecastStore } from '@/store'
 const rtForecastStore = useRTForecastStore();
 
+const RENDER_MODE_SINGLE_IMAGE = 'single-image'
+const RENDER_MODE_TILE_TEMPLATE = 'tile-template'
+
 const props = defineProps({
     initialCoords: { type: Array, default: () => [-180, -90, 180, 90] },
     autoStart: { type: Boolean, default: true },
     isPlaying: { type: Boolean, default: true },
     switchInterval: { type: Number, default: 5000 },
     fetchedUrls: { type: Array, default: () => [] },
-    dateType: { type: String, default: 'daily' }, // daily or monthly
+    dateType: { type: String, default: 'daily' },
+    renderMode: { type: String, default: RENDER_MODE_SINGLE_IMAGE },
     defaultImageUrl: { type: String, default: defaultImageUrl }
 })
 
@@ -59,6 +63,28 @@ const currentIndex = ref(0)
 const baseLayer = ref(null) // 默认图层
 const currentLayer = ref(null) // 当前图层
 const imageryLayers = ref(null) // 图层集合
+
+const isSingleImageMode = computed(() => props.renderMode === RENDER_MODE_SINGLE_IMAGE)
+const isTileTemplateMode = computed(() => props.renderMode === RENDER_MODE_TILE_TEMPLATE)
+
+const getFrameUrl = (item) => {
+    if (!item) return item
+    if (typeof item === 'string') return item
+    return item.cesiumUrl || item.url || item.path || item.displayUrl || item.cesium_image_url || item
+}
+
+const getRectangleFromCoords = (coords = props.initialCoords) => {
+    const [west = -180, south = -90, east = 180, north = 90] = coords
+    return Cesium.Rectangle.fromDegrees(west, south, east, north)
+}
+
+const getFrameRectangle = (item) => {
+    const rectangle = item && typeof item === 'object' ? item.cesium_rectangle : null
+    if (!rectangle) return getRectangleFromCoords()
+
+    const { west, south, east, north } = rectangle
+    return Cesium.Rectangle.fromDegrees(west, south, east, north)
+}
 
 
 // --------- 控制是否自动播放 -----------
@@ -97,10 +123,26 @@ const waitForTilesIdle = (timeout = 20000, quietMs = 250) => {
         const removeListener = viewer.value.scene.globe.tileLoadProgressEvent.addEventListener(onProgress)
         timeoutTimer = setTimeout(done, timeout)
 
-        // 有些情况下事件不会立刻触发，这里主动检查一次
         requestAnimationFrame(() => onProgress(0))
     })
 }
+
+const waitForFrameSettled = async (provider) => {
+    if (isTileTemplateMode.value) {
+        await Promise.all([
+            waitForReadyWithTimeout(provider, 5000),
+            waitForTilesIdle(20000, 250)
+        ])
+        return
+    }
+
+    await waitForReadyWithTimeout(provider, 5000)
+}
+
+const waitForMinimumStay = (frameStartAt) => new Promise((resolve) => {
+    const rest = Math.max(0, MIN_SWITCH_INTERVAL - (Date.now() - frameStartAt))
+    setTimeout(resolve, rest)
+})
 
 // 开始播放
 const startPlaying = () => {
@@ -108,7 +150,6 @@ const startPlaying = () => {
     playState.active = true
     const currentToken = ++playState.token
 
-    // 串行循环：上一张加载完成后再切下一张
     ; (async () => {
         while (playState.active && currentToken === playState.token) {
             const switched = await switchToNextImage()
@@ -148,16 +189,13 @@ const switchToNextImage = async (targetIndex) => {
     const nextLayer = await updateToIndex(nextIndex % props.fetchedUrls.length)
     if (!nextLayer) return false
 
-    // 等最新图层的 provider ready 后再移除旧图层，避免闪烁
     const provider = nextLayer && nextLayer.imageryProvider;
 
-    // 先隐藏并置透明，等 provider ready 后再淡入显示
     try { nextLayer.alpha = 0; nextLayer.show = false; } catch (e) { /* ignore */ }
 
     try {
         await waitForReadyWithTimeout(provider, 5000)
     } catch (err) {
-        // provider 未能就绪：仍然继续，后续走瓦片空闲等待兜底
         console.warn('nextLayer provider not ready, fallback,', err)
     }
 
@@ -179,12 +217,7 @@ const switchToNextImage = async (targetIndex) => {
         currentIndex.value = nextIndex;
     }
 
-    // 关键：需同时满足“至少展示2秒”与“瓦片加载到空闲”后才允许切下一张
-    const minStayPromise = new Promise((resolve) => {
-        const rest = Math.max(0, MIN_SWITCH_INTERVAL - (Date.now() - frameStartAt))
-        setTimeout(resolve, rest)
-    })
-    await Promise.all([waitForTilesIdle(20000, 250), minStayPromise])
+    await Promise.all([waitForFrameSettled(provider), waitForMinimumStay(frameStartAt)])
     return true
 }
 
@@ -193,6 +226,20 @@ const initFirstLayer = async () => {
     currentIndex.value = 0
     currentLayer.value = await updateToIndex(currentIndex.value)
 
+    if (!currentLayer.value) {
+        rtForecastStore.isLoading = false
+        return
+    }
+
+    try {
+        const provider = currentLayer.value.imageryProvider
+        await waitForFrameSettled(provider)
+    } catch (e) {
+        console.warn('init first layer wait failed', e)
+    }
+
+    rtForecastStore.isLoading = false
+    startPlaying()
 }
 
 
@@ -228,11 +275,13 @@ const waitForReadyWithTimeout = (p, timeout = 5000) => {
 
 // 创建默认底图 provider
 const createBaseProvider = async () => {
-    if (props.dateType === 'monthly') {
+    if (isSingleImageMode.value) {
         return await Cesium.SingleTileImageryProvider.fromUrl(props.defaultImageUrl, {
-            rectangle: Cesium.Rectangle.fromDegrees(...props.initialCoords)
+            rectangle: getRectangleFromCoords()
         })
-    } else return new Cesium.UrlTemplateImageryProvider({
+    }
+
+    return new Cesium.UrlTemplateImageryProvider({
         url: 'https://webst02.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
         minimumLevel: 0,
         maximumLevel: 7,
@@ -240,17 +289,12 @@ const createBaseProvider = async () => {
 };
 
 
-// 初始化球体 
-// 在前x张图预加载完成之后，初始化球体
-// 包括创建实例，贴默认图，定位
+// 初始化球体
 const initCesium = async () => {
     const baseProvider = await createBaseProvider()
 
-    // // 创建 viewer，不自动创建默认影像提供者
-    // // 为了隐藏左下角的 Cesium credit 链接，创建一个不可见的 creditContainer 并在组件卸载时移除，避免内存泄漏
     if (!_creditEl) {
         _creditEl = document.createElement('div');
-        // 隐藏并放到 body 中，这样 Cesium 会写入 credit 内容到该元素，但用户不可见
         _creditEl.style.position = 'absolute';
         _creditEl.style.width = '0px';
         _creditEl.style.height = '0px';
@@ -261,9 +305,6 @@ const initCesium = async () => {
     }
 
     viewer.value = new Cesium.Viewer('cesiumContainer', {
-        // Use a local ellipsoid terrain provider to avoid automatic requests
-        // to Cesium Ion (https://assets.ion.cesium.com/...)
-        // terrainProvider: new Cesium.EllipsoidTerrainProvider(),
         timeline: false,
         animation: false,
         geocoder: false,
@@ -278,38 +319,11 @@ const initCesium = async () => {
 
     imageryLayers.value = viewer.value.imageryLayers
 
-    // 监听瓦片加载
-    const tileLoadListener = viewer.value.scene.globe.tileLoadProgressEvent.addEventListener(function (pendingRequests) {
-        if (pendingRequests === 0) {
-            // 瓦片加载完成！现在我们等待这一帧被画出来
-
-            // 使用 requestAnimationFrame 等待下一次绘制
-            requestAnimationFrame(function () {
-                // 1. 所有瓦片数据已加载。
-                // 2. 包含这些清晰瓦片的帧已经被绘制到了屏幕上。
-                rtForecastStore.isLoading = false; // 隐藏加载动画
-                // 开始播放
-                startPlaying()
-
-            });
-            // 别忘了移除监听器
-            tileLoadListener();
-        }
-    });
-
-
-    // 记录默认底图 layer 引用，供后续 ready 等待使用
     try { baseLayer.value = viewer.value.imageryLayers.get(0); } catch (e) { baseLayer.value = null }
 
     try {
-        // 1. 限制最近距离 (对应最大 Zoom Level)
-        // 设置为 250,000 米，约等于 Level 7
         viewer.value.scene.screenSpaceCameraController.minimumZoomDistance = 250000
-
-        // 2. 限制最远距离 (对应最小 Zoom Level)
-        // 防止用户缩小到看不见地球，设置为 20,000,000 米
         viewer.value.scene.screenSpaceCameraController.maximumZoomDistance = 20000000
-        // 飞向北极
         viewer.value.camera.flyTo({
             destination: Cesium.Cartesian3.fromDegrees(0.0, 90.0, 8000000.0),
             orientation: {
@@ -320,10 +334,8 @@ const initCesium = async () => {
             duration: 2,
         })
     } catch (e) {
-        // ignore
     }
 
-    // 等默认底图 provider 就绪后再初始化第一张播放图，避免在底图未就绪时开始动画
     try {
         const baseProvider = baseLayer.value && baseLayer.value.imageryProvider;
 
@@ -340,11 +352,11 @@ const initCesium = async () => {
 const updateToIndex = async (index) => {
     if (index < 0 || index >= props.fetchedUrls.length) return;
     const item = props.fetchedUrls[index];
-    const imageUrl = item.path || item.url || item;
+    const imageUrl = getFrameUrl(item);
     let layer;
 
     try {
-        const provider = await createTileProvider(imageUrl)
+        const provider = await createFrameProvider(item, imageUrl)
         layer = imageryLayers.value.addImageryProvider(
             provider
         );
@@ -356,25 +368,21 @@ const updateToIndex = async (index) => {
     return layer;
 }
 
-const createTileProvider = async (urlTemplate) => {
-    if (props.dateType === 'monthly') {
+const createFrameProvider = async (item, urlTemplate) => {
+    if (isSingleImageMode.value) {
         return await Cesium.SingleTileImageryProvider.fromUrl(urlTemplate, {
-            rectangle: Cesium.Rectangle.fromDegrees(-180.0, -90.0, 180.0, 90.0)
+             rectangle: getFrameRectangle(item)
         })
-    } else
-        return new Cesium.UrlTemplateImageryProvider({
-            url: urlTemplate,
-            tilingScheme: new Cesium.GeographicTilingScheme(),
-            minimumLevel: 0,
-            maximumLevel: 6,
-            hasAlphaChannel: true,
-            rectangle: Cesium.Rectangle.fromDegrees(
-                -180, // 西
-                30, // 南
-                180, // 东
-                90, // 北
-            ),
-        });
+    }
+
+    return new Cesium.UrlTemplateImageryProvider({
+        url: urlTemplate,
+        tilingScheme: new Cesium.GeographicTilingScheme(),
+        minimumLevel: 0,
+        maximumLevel: 6,
+        hasAlphaChannel: true,
+        rectangle: getRectangleFromCoords(),
+    });
 };
 
 
@@ -401,7 +409,6 @@ watch(() => props.isPlaying, (newVal) => {
 
 // 根据daily or monthly 切换slider下方提示
 const sliderHint = computed(() => {
-    // 优先使用后端返回的日期
     if (props.fetchedUrls && props.fetchedUrls.length > 0) {
         const first = props.fetchedUrls[0]
         if (first && typeof first === 'object' && first.date) {
@@ -422,13 +429,11 @@ onBeforeUnmount(() => {
             console.warn('destroy viewer error', e)
         }
     }
-    // 移除之前创建的 credit container，防止内存泄漏
     try {
         if (_creditEl && _creditEl.parentNode) {
             _creditEl.parentNode.removeChild(_creditEl)
         }
     } catch (e) {
-        // ignore
     }
     _creditEl = null
 })

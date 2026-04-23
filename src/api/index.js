@@ -16,6 +16,19 @@ export const get_monthly_real_time_forecast = (params) => get('/api/realtime/mon
     })
 })
 
+/**
+ * 获取实时逐日预测结果
+ * @param {{ [key: string]: any }} params 请求参数
+ * @returns {Promise<Array<{date: string, path: string, source_date: string, cesium_image_url: string}>>}
+ */
+export const get_realtime_daily_prediction = (params) => get('/api/realtime/daily', params).then(res => {
+    return res.data.result_urls.map((item) => {
+        item.path = WEBSITE_URL + item.path
+        item.cesium_image_url = WEBSITE_URL + item.cesium_image_url
+        return item
+    })
+})
+
 export const post_model_interpreter_data = (params) => post('/api/model/interpreter', params).then(res => {
     console.log('res', res)
 })
@@ -298,5 +311,7 @@ export async function get_route_plan_result(task_id) {
         throw error
     }
 }
+
+
 
 

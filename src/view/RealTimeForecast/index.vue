@@ -6,17 +6,15 @@
         <b-tab-item :label="t('realTimeForecast.future12Months')" value="monthly"></b-tab-item>
       </b-tabs>
     </b-section>
-    <!-- 球 -->
-    <Sphere :date-type="rtForecastStore.dateType" :fetched-urls="curImagesUrl" @handlePlay="rtForecastStore.play"
-      @handlePause="rtForecastStore.pause" :is-playing="rtForecastStore.isPlaying" ref="sphereRef" />
-    <!-- /球 -->
-
+    <Sphere :date-type="rtForecastStore.dateType" :render-mode="currentRenderMode" :fetched-urls="curImagesUrl"
+      @handlePlay="rtForecastStore.play" @handlePause="rtForecastStore.pause" :is-playing="rtForecastStore.isPlaying"
+      ref="sphereRef" />
   </div>
 </template>
 <script setup>
-import { get_monthly_real_time_forecast, get_daily_real_time_forecast, get_daily_realtime_tiles } from '@/api'
+import { get_monthly_real_time_forecast, get_realtime_daily_prediction } from '@/api'
 import { useRTForecastStore } from '@/store'
-import { watch, ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { computed, watch, ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { createImagePreloader } from '@/utils/imagePreloader'
 import { useI18n } from 'vue-i18n'
 
@@ -25,109 +23,142 @@ const rtForecastStore = useRTForecastStore();
 
 const sphereRef = ref(null);
 
-const curImagesUrl = ref([]) // 当前使用的图片URL列表
+const curImagesUrl = ref([])
 const fetchedDailyUrls = ref([])
 const fetchedMonthlyUrls = ref([])
 
-// 加载动画开关
-// const isLoading = ref(true)
+const RENDER_MODE_SINGLE_IMAGE = 'single-image'
+const RENDER_MODE_TILE_TEMPLATE = 'tile-template'
 
-// 预加载器实例
-let dailyPreloader = null
-let monthlyPreloader = null
+const legacyDailyTileMode = {
+  renderMode: RENDER_MODE_TILE_TEMPLATE,
+}
 
-// 当 preloader 有进度更新时同步回组件状态
+const modeConfigs = {
+  [rtForecastStore.DAILY]: {
+    renderMode: RENDER_MODE_SINGLE_IMAGE,
+    preloadName: 'daily',
+    concurrency: 3,
+    initialBatch: 3,
+    loadImages: get_realtime_daily_prediction,
+    normalizeFrames: (items = []) => items.map((item) => ({
+      ...item,
+      displayUrl: item.path,
+      cesiumUrl: item.cesium_image_url,
+    })),
+    getPreloadUrl: (item) => item.cesiumUrl || item.displayUrl || item.path || item.url || item,
+  },
+  [rtForecastStore.MONTHLY]: {
+    renderMode: RENDER_MODE_SINGLE_IMAGE,
+    preloadName: 'monthly',
+    concurrency: 2,
+    initialBatch: 0,
+    loadImages: get_monthly_real_time_forecast,
+    normalizeFrames: (items = []) => items.map((item) => ({
+      ...item,
+      displayUrl: item.path || item.url || item,
+      cesiumUrl: item.cesiumUrl || item.path || item.url || item,
+    })),
+    getPreloadUrl: (item) => item.cesiumUrl || item.displayUrl || item.path || item.url || item,
+  }
+}
+
+const preloaders = {
+  [rtForecastStore.DAILY]: null,
+  [rtForecastStore.MONTHLY]: null,
+}
+
+const currentConfig = computed(() => modeConfigs[rtForecastStore.dateType] || modeConfigs[rtForecastStore.DAILY])
+const currentRenderMode = computed(() => currentConfig.value.renderMode)
+
 function handleProgress(index, status, name) {
   console.debug(`[preloader:${name}] #${index} -> ${status}`)
 }
 
-// 获取按日的图片列表并启动 preloader
-const getDailyImages = async () => {
-  try {
-    const res = await get_daily_realtime_tiles()
-    // const res = await get_daily_real_time_forecast();
-    fetchedDailyUrls.value = res || [];
-    // const urls = (res || []).map(item => item.path || item.url || item);
-    // dailyPreloader = createImagePreloader(urls, {
-    //   concurrency: 3,
-    //   initialBatch: 3,
-    //   onProgress: handleProgress,
-    //   name: 'daily'
-    // });
+function setFramesForType(type, frames) {
+  if (type === rtForecastStore.DAILY) {
+    fetchedDailyUrls.value = frames
+  } else if (type === rtForecastStore.MONTHLY) {
+    fetchedMonthlyUrls.value = frames
+  }
 
-
-    // 先加载 initial batch，等待它完成再继续（用于首次渲染）
-    // await dailyPreloader.loadInitial();
-    // 如果当前是 daily 视图，确保 curImagesUrl 更新到已就绪的 daily 列表
-    if (rtForecastStore.dateType === 'daily') curImagesUrl.value = fetchedDailyUrls.value;
-  } catch (err) {
-    console.error('Failed to fetch daily images:', err);
+  if (rtForecastStore.dateType === type) {
+    curImagesUrl.value = frames
   }
 }
 
-
-// 获取按月的图片列表并启动 preloader（后台加载）
-const getMonthlyImages = async () => {
-  try {
-    const res = await get_monthly_real_time_forecast();
-    fetchedMonthlyUrls.value = res || [];
-    const urls = (res || []).map(item => item.path || item.url || item);
-    monthlyPreloader = createImagePreloader(urls, {
-      concurrency: 2,
-      initialBatch: 0, // 月份不需要阻塞初次渲染
-      onProgress: handleProgress,
-      name: 'monthly'
-    });
-
-    // background load all (don't await here to avoid blocking)
-    monthlyPreloader.loadAll().then(() => console.info('monthly preload finished'));
-  } catch (err) {
-    console.error('Failed to fetch monthly images:', err);
-  }
+function getFramesByType(type) {
+  if (type === rtForecastStore.MONTHLY) return fetchedMonthlyUrls.value
+  return fetchedDailyUrls.value
 }
 
+function disposePreloader(type) {
+  const preloader = preloaders[type]
+  if (!preloader) return
+  preloader.cancelAll()
+  preloaders[type] = null
+}
+
+async function setupModeData(type) {
+  const config = modeConfigs[type]
+  if (!config) return []
+
+  const result = await config.loadImages()
+  const frames = config.normalizeFrames(result || [])
+  const preloadUrls = frames.map(config.getPreloadUrl).filter(Boolean)
+
+  disposePreloader(type)
+  preloaders[type] = createImagePreloader(preloadUrls, {
+    concurrency: config.concurrency,
+    initialBatch: config.initialBatch,
+    onProgress: handleProgress,
+    name: config.preloadName,
+  })
+
+  if (config.initialBatch > 0) {
+    await preloaders[type].loadInitial()
+  }
+
+  setFramesForType(type, frames)
+
+  preloaders[type].loadAll().then(() => console.info(`${config.preloadName} preload finished`))
+
+  return frames
+}
 
 watch(() => rtForecastStore.dateType, async (newVal) => {
-  if (newVal === 'daily') {
-    curImagesUrl.value = fetchedDailyUrls.value;
-  } else {
-    curImagesUrl.value = fetchedMonthlyUrls.value;
-  }
+  curImagesUrl.value = getFramesByType(newVal)
   nextTick().then(() => {
-      sphereRef.value && sphereRef.value.restart(); // 重置球的状态
-
-  });
-});
-
+    sphereRef.value && sphereRef.value.restart()
+  })
+})
 
 onMounted(async () => {
-  rtForecastStore.isLoading = true;
-  // 并行发起两个请求，但我们会等待 daily 的初始批完成以供首屏渲染
-  await Promise.allSettled([getDailyImages(), getMonthlyImages()]);
+  rtForecastStore.isLoading = true
+  await Promise.allSettled([
+    setupModeData(rtForecastStore.DAILY),
+    setupModeData(rtForecastStore.MONTHLY)
+  ])
 
-  // // 将 daily 的剩余图片在后台继续加载 这里换成了瓦片 就不需要提前加载了 因为加载逻辑不在我们的组件
-  // if (dailyPreloader) {
-  //   dailyPreloader.loadAll().then(() => console.info('daily preload finished'));
-  // }
-
-  // 尝试初始化子组件（如果子组件提供 initCesium）
-  if (sphereRef.value && typeof sphereRef.value.initCesium === 'function') {
-    try { sphereRef.value.initCesium(); } catch (e) { console.warn('initCesium failed', e); }
+  if (rtForecastStore.dateType === rtForecastStore.DAILY && !curImagesUrl.value.length) {
+    curImagesUrl.value = fetchedDailyUrls.value
   }
 
+  if (sphereRef.value && typeof sphereRef.value.initCesium === 'function') {
+    try { sphereRef.value.initCesium() } catch (e) { console.warn('initCesium failed', e) }
+  }
 })
 
 onUnmounted(() => {
   if (sphereRef.value) {
     sphereRef.value = null
   }
-  if (dailyPreloader) {
-    dailyPreloader.cancelAll()
-    dailyPreloader = null
-  }
 
+  disposePreloader(rtForecastStore.DAILY)
+  disposePreloader(rtForecastStore.MONTHLY)
 
-});
+  void legacyDailyTileMode
+})
 </script>
 
 
