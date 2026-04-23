@@ -101,8 +101,9 @@
   },
   "routePlanning": {
     "title": "预测航线规划",
-    "selectDate": "选择未来14天中的日期",
-    "datePlaceholder": "点击选择日期",
+    "departureDate": "出发日期",
+    "selectDate": "选择 2025 年 7 月至 8 月底的日期",
+    "datePlaceholder": "选择出发日期",
     "startPoint": "选择起始点",
     "endPoint": "选择终点",
     "resultTitle": "模型预测航线",
@@ -154,7 +155,8 @@
       "greenland": "格陵兰海"
     },
     "errors": {
-      "dateRequired": "请先选择未来14天中的某一天。",
+      "dateRequired": "请选择出发日期。",
+      "dateOutOfRange": "出发日期只能选择 2025-07-01 到 2025-08-31。",
       "pointsMustDiffer": "起始点和终点不能相同。",
       "noPortsAvailable": "当前没有可用港口，请稍后重试。"
     }

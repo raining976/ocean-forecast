@@ -279,21 +279,23 @@ export async function get_route_ports() {
 }
 
 /**
- * 提交航线规划任务
+ * 提交航线规划任务（按出发时间）
  * @param {Object} params
  * @param {string} params.start_port 起始港口名称
  * @param {string} params.end_port 终点港口名称
+ * @param {string} params.departure_date 出发日期，格式 yyyy-mm-dd
  */
-export async function post_route_plan_task(params) {
+export async function post_route_plan_by_departure_task(params) {
     try {
-        const { start_port, end_port } = params
-        const response = await post('/api/route/plan', {
+        const { start_port, end_port, departure_date } = params
+        const response = await post('/api/route/planByDeparture', {
             start_port,
-            end_port
+            end_port,
+            departure_date
         })
         return response
     } catch (error) {
-        console.error('Error creating route plan task:', error)
+        console.error('Error creating route plan by departure task:', error)
         throw error
     }
 }

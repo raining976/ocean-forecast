@@ -1,4 +1,4 @@
-import { get_route_plan_result, post_route_plan_task } from '@/api'
+import { get_route_plan_result, post_route_plan_by_departure_task } from '@/api'
 
 const POLL_INTERVAL = 3000
 const MAX_CACHE_SIZE = 10
@@ -111,10 +111,11 @@ export const useRoutePlanningStore = defineStore('routePlanningState', () => {
         })
     }
 
-    const submitRoutePlanTask = async ({ startPort, endPort }) => {
-        const response = await post_route_plan_task({
+    const submitRoutePlanTask = async ({ startPort, endPort, departureDate }) => {
+        const response = await post_route_plan_by_departure_task({
             start_port: startPort,
-            end_port: endPort
+            end_port: endPort,
+            departure_date: departureDate
         })
         const taskId = response?.data?.task_id
         if (!taskId) {

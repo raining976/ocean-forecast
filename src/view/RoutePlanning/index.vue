@@ -18,9 +18,22 @@
             </section> -->
 
                 <section class="formRow">
+                    <b-field :label="t('routePlanning.departureDate')">
+                        <b-datepicker
+                            v-model="departureDate"
+                            size="is-small"
+                            :placeholder="t('routePlanning.datePlaceholder')"
+                            :min-date="departureDateMin"
+                            :max-date="departureDateMax"
+                            trap-focus
+                        />
+                    </b-field>
+                </section>
+
+                <section class="formRow">
                     <b-field :label="t('routePlanning.startPoint')">
                         <b-radio v-for="point in routePoints" :key="`start-${point.value}`" v-model="startPoint"
-                            name="start-point" :native-value="point.value" type="is-dark" class="radioItem">
+                            name="start-point" :native-value="point.value" type="is-dark" size="is-small" class="radioItem">
                             {{ point.label }}
                         </b-radio>
                     </b-field>
@@ -29,7 +42,7 @@
                 <section class="formRow">
                     <b-field :label="t('routePlanning.endPoint')">
                         <b-radio v-for="point in routePoints" :key="`end-${point.value}`" v-model="endPoint"
-                            name="end-point" :native-value="point.value" type="is-dark" class="radioItem">
+                            name="end-point" :native-value="point.value" type="is-dark" size="is-small"  class="radioItem">
                             {{ point.label }}
                         </b-radio>
                     </b-field>
@@ -83,7 +96,7 @@
             <p class="summary" v-else>
                 {{ t('routePlanning.emptyHint') }}
             </p>
-            <RoutePhere ref="routePhereRef" :route-ports="routePorts" :selected-start-point="startPoint"
+            <RoutePhere ref="routePhereRef" :route-ports="ROUTE_PORTS" :selected-start-point="startPoint"
                 :selected-end-point="endPoint" :route-result="activeTask?.result || null" class="sphereBox" />
 
             <section v-if="activeTask && activeTask.result" class="resultMeta">
@@ -114,10 +127,12 @@ const routePlanningStore = useRoutePlanningStore()
 
 const startPoint = ref('')
 const endPoint = ref('')
+const departureDate = ref(null)
 const routePhereRef = ref(null)
 const hasResult = ref(false)
 
-const routePorts = ref(ROUTE_PORTS) // 使用统一静态港口数据
+const departureDateMin = new Date(2025, 6, 1)
+const departureDateMax = new Date(2025, 7, 31)
 const taskList = computed(() => routePlanningStore.taskList)
 const activeTask = computed(() => routePlanningStore.activeTask)
 
@@ -126,11 +141,9 @@ const getPortLabel = (portName) => {
     return te(key) ? t(key) : portName
 }
 
-const routePoints = computed(() => routePorts.value.map((port) => ({
+const routePoints = computed(() => ROUTE_PORTS.map((port) => ({
     value: port.name,
-    label: getPortLabel(port.name),
-    lat: port.lat,
-    lon: port.lon
+    label: getPortLabel(port.name)
 })))
 
 const formatDateTime = (value) => {
@@ -139,6 +152,24 @@ const formatDateTime = (value) => {
     if (Number.isNaN(date.getTime())) return '-'
     return date.toLocaleString()
 }
+
+const formatDepartureDate = (date) => {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return ''
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+}
+
+const isDepartureDateInRange = (date) => {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return false
+    return date >= departureDateMin && date <= departureDateMax
+}
+
+const normalizedDepartureDate = computed(() => {
+    if (!(departureDate.value instanceof Date)) return null
+    return isDepartureDateInRange(departureDate.value) ? departureDate.value : null
+})
 
 const routeSummary = computed(() => {
     if (!hasResult.value || !activeTask.value) return ''
@@ -252,6 +283,16 @@ const submitForm = async () => {
         return
     }
 
+    if (!departureDate.value) {
+        errorToast('routePlanning.errors.dateRequired')
+        return
+    }
+
+    if (!normalizedDepartureDate.value) {
+        errorToast('routePlanning.errors.dateOutOfRange')
+        return
+    }
+
     if (startPoint.value === endPoint.value) {
         errorToast('routePlanning.errors.pointsMustDiffer')
         return
@@ -260,7 +301,8 @@ const submitForm = async () => {
     try {
         await routePlanningStore.submitRoutePlanTask({
             startPort: startPoint.value,
-            endPort: endPoint.value
+            endPort: endPoint.value,
+            departureDate: formatDepartureDate(normalizedDepartureDate.value)
         })
         hasResult.value = false
         openToast('routePlanning.submitSuccess')
