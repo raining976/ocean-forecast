@@ -80,10 +80,10 @@ const leftList = computed(() => [
         name: t('nav.realTimeForecast'),
         link: '/real-time-forecast',
     },
-    {
-        name: t('nav.forecastTest'),
-        link: '/forecast-test',
-    },
+    // {
+    //     name: t('nav.forecastTest'),
+    //     link: '/forecast-test',
+    // },
     {
         name: t('nav.routePlanning'),
         link:"/route-planning"
